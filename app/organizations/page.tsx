@@ -1,8 +1,11 @@
 import { Suspense } from "react";
 import Link from "next/link";
+import type { PaginationParams } from "@/lib/pagination";
 import { OrganizationTable } from "./organization-table";
 
-export default function OrganizationsPage() {
+export default function OrganizationsPage({ searchParams }: {
+  searchParams: Promise<PaginationParams>;
+}) {
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
@@ -13,7 +16,7 @@ export default function OrganizationsPage() {
       </div>
 
       <Suspense fallback={<p>Loading organizations...</p>}>
-        <OrganizationTable />
+        <OrganizationTable searchParams={searchParams} />
       </Suspense>
     </div>
   );

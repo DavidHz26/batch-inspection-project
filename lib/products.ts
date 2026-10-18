@@ -1,27 +1,44 @@
 import { requireOrganizationId } from "./organization";
 import { supabase } from "./supabase";
+import { pageRange, type Paginated } from "./pagination";
 import type { Product, ProductInput } from "./types";
 
+export async function getProductsPage(
+  organization_id: string,
+  page: number,
+  pageSize: number,
+): Promise<Paginated<Product>> {
+  const { from, to } = pageRange(page, pageSize);
+  const { data, error, count } = await supabase
+    .from("products")
+    .select("*", { count: "exact" })
+    .eq("organization_id", organization_id)
+    .order("created_at", { ascending: false })
+    .range(from, to);
 
-export async function getProducts(organizationId: string): Promise<Product[]> {
+  if (error) throw new Error(`Error while fetching products: ${error.message}`);
+  return { data: data || [], count: count || 0 };
+}
+
+export async function getProducts(organization_id: string): Promise<Product[]> {
   const { data, error } = await supabase
     .from("products")
     .select("*")
-    .eq("organization_id", organizationId)
-    .order("name");
+    .eq("organization_id", organization_id);
 
-  if (error) throw new Error(`Error al cargar productos: ${error.message}`);
+  if (error) throw new Error(`Error while fetching products: ${error.message}`);
   return data || [];
 }
 
-export async function getProduct(id: string): Promise<Product | null> {
+export async function getProduct(organization_id: string, id: string): Promise<Product | null> {
   const { data, error } = await supabase
     .from("products")
     .select("*")
     .eq("id", id)
+    .eq("organization_id", organization_id)
     .maybeSingle();
 
-  if (error) throw new Error(`Error al cargar el producto: ${error.message}`);
+  if (error) throw new Error(`Error while fetching single product: ${error.message}`);
   return data;
 }
 
@@ -33,7 +50,7 @@ export async function insertProduct(input: ProductInput): Promise<Product> {
     .select()
     .single();
 
-  if (error) throw new Error(`Error al crear producto: ${error.message}`);
+  if (error) throw new Error(`Error while trying to create a product: ${error.message}`);
   return data;
 }
 
@@ -50,7 +67,7 @@ export async function updateProduct(
     .select()
     .single();
 
-  if (error) throw new Error(`Error al actualizar producto: ${error.message}`);
+  if (error) throw new Error(`Error while trying to update a product: ${error.message}`);
   return data;
 }
 
@@ -64,8 +81,8 @@ export async function deleteProduct(id: string): Promise<void> {
 
   if (error) {
     if (error.code === "23503") {
-      throw new Error("No se puede eliminar un producto con inspecciones asociadas.");
+      throw new Error("Cant delete a product associated with an inspection.");
     }
-    throw new Error(`Error al eliminar producto: ${error.message}`);
+    throw new Error(`Error while trying to delete a product: ${error.message}`);
   }
 }

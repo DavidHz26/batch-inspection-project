@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import { getCurrentOrganizationId } from "@/lib/organization";
 import { calculateGlobalMetrics } from "@/lib/quality-calculator";
-import { getInspections } from "@/lib/inspections";
+import { getInspectionUnits } from "@/lib/inspections";
 
 export default function Home() {
   return (
@@ -18,7 +18,7 @@ async function Summary() {
   const organizationId = await getCurrentOrganizationId();
   if (!organizationId) return <p>Select an organization to see its summary.</p>;
 
-  const inspections = await getInspections(organizationId);
+  const inspections = await getInspectionUnits();
   const metrics = calculateGlobalMetrics(inspections);
 
   const stats = [

@@ -1,4 +1,4 @@
-export type InspectionStatus = 'Aprobado' | 'Observaciones' | 'Rechazado';
+export type InspectionStatus = 'Approved' | 'Observations' | 'Rejected';
 
 export interface Organization {
   id: string;

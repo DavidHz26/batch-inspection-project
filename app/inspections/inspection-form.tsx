@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { Inspection, Product } from "@/lib/types";
 
 export function InspectionForm({
@@ -12,70 +13,109 @@ export function InspectionForm({
   submitLabel: string;
 }) {
   return (
-    <form action={action} className="grid gap-3 max-w-sm">
+    <form action={action} className="grid gap-4 max-w-lg">
+
       <label className="grid gap-1">
-        Product
+        <span className="font-medium text-sm">Product *</span>
         <select
           name="product_id"
-          defaultValue={inspection?.product_id}
-          required
-        >
+          defaultValue={inspection?.product_id ?? ""}
+          required className="border p-2 rounded bg-background">
+          <option value="">Selecciona un producto...</option>
           {products.map((product) => (
             <option key={product.id} value={product.id}>
-              {product.sku} — {product.name}
+              {product.sku} - {product.name}
             </option>
           ))}
         </select>
       </label>
+
       <label className="grid gap-1">
-        Batch number
+        <span className="font-medium text-sm">Batch *</span>
         <input
           name="batch_number"
+          type="text"
           defaultValue={inspection?.batch_number}
           required
+          placeholder="Ex. B-2026-001"
+          className="border p-2 rounded"
         />
       </label>
+
       <label className="grid gap-1">
-        Inspection date
+        <span className="font-medium text-sm">Inspection Date *</span>
         <input
           name="inspection_date"
           type="date"
-          defaultValue={inspection?.inspection_date}
           required
+          defaultValue={
+            inspection?.inspection_date ?? new Date().toISOString().split("T")[0]
+          }
+          className="border p-2 rounded"
         />
       </label>
+
       <label className="grid gap-1">
-        Units inspected
+        <span className="font-medium text-sm">Inspected Units *</span>
         <input
           name="units_inspected"
           type="number"
-          min={1}
           defaultValue={inspection?.units_inspected}
+          min="1"
+          step="1"
           required
+          placeholder="Ex. 100"
+          className="border p-2 rounded"
         />
       </label>
+
       <label className="grid gap-1">
-        Units defective
+        <span className="font-medium text-sm">Defective Units *</span>
         <input
           name="units_defective"
           type="number"
-          min={0}
           defaultValue={inspection?.units_defective}
+          min="0"
+          step="1"
           required
+          placeholder="Ex. 2"
+          className="border p-2 rounded"
         />
       </label>
+
       <label className="grid gap-1">
-        Inspector
+        <span className="font-medium text-sm">Inspector (Optional)</span>
         <input
           name="inspector_name"
+          type="text"
           defaultValue={inspection?.inspector_name ?? ""}
+          placeholder="Ex. David Hernandez"
+          className="border p-2 rounded"
         />
       </label>
+
       <label className="grid gap-1">
-        Notes
-        <textarea name="notes" rows={2} defaultValue={inspection?.notes ?? ""} />
+        <span className="font-medium text-sm">Observations (Optional)</span>
+        <textarea
+          name="notes"
+          rows={3}
+          defaultValue={inspection?.notes ?? ""}
+          placeholder="Aditional comments..."
+          className="border p-2 rounded"
+        />
       </label>
-      <button type="submit">{submitLabel}</button>
+
+      <div className="flex gap-3 items-center pt-2">
+        <button
+          type="submit"
+          className="bg-primary text-primary-foreground px-4 py-2 rounded font-medium hover:opacity-90"
+        >
+          {submitLabel}
+        </button>
+        <Link href="/inspections" className="text-sm underline text-muted-foreground">
+          Cancel
+        </Link>
+      </div>
     </form>
   );
 }
