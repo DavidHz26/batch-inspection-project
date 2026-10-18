@@ -1,8 +1,24 @@
 import { cookies } from "next/headers";
 import { supabase } from "./supabase";
+import { pageRange, type Paginated } from "./pagination";
 import type { Organization, OrganizationInput } from "./types";
 
 export const ORGANIZATION_COOKIE = "organization_id";
+
+export async function getOrganizationsPage(
+  page: number,
+  pageSize: number,
+): Promise<Paginated<Organization>> {
+  const { from, to } = pageRange(page, pageSize);
+  const { data, error, count } = await supabase
+    .from("organizations")
+    .select("*", { count: "exact" })
+    .order("name")
+    .range(from, to);
+
+  if (error) throw new Error(`Error while trying to get the organizations: ${error.message}`);
+  return { data: data || [], count: count || 0 };
+}
 
 export async function getOrganizations(): Promise<Organization[]> {
   const { data, error } = await supabase
@@ -10,7 +26,7 @@ export async function getOrganizations(): Promise<Organization[]> {
     .select("*")
     .order("name");
 
-  if (error) throw new Error(`Error al cargar organizaciones: ${error.message}`);
+  if (error) throw new Error(`Error while trying to get the organizations: ${error.message}`);
   return data || [];
 }
 
@@ -21,7 +37,7 @@ export async function getOrganization(id: string): Promise<Organization | null> 
     .eq("id", id)
     .maybeSingle();
 
-  if (error) throw new Error(`Error al cargar la organización: ${error.message}`);
+  if (error) throw new Error(`Error while trying to get the organization: ${error.message}`);
   return data;
 }
 

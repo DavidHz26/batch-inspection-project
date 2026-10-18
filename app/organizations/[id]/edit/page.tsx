@@ -25,7 +25,13 @@ async function EditOrganization({
   return (
     <div className="space-y-8">
       <div className="space-y-4">
-        <h1 className="text-xl font-semibold">Edit {organization.name}</h1>
+        <div>
+          <h1 className="text-xl font-semibold">Edit {organization.name}</h1>
+          <p className="text-sm text-gray-500">
+            <span className="font-mono">{organization.slug}</span> · created{" "}
+            {new Date(organization.created_at).toLocaleString()}
+          </p>
+        </div>
         <OrganizationForm
           key={`${organization.id}-${organization.name}`}
           action={updateOrganization.bind(null, organization.id)}

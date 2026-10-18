@@ -1,34 +1,41 @@
 import Link from "next/link";
 import { getInspections } from "@/lib/inspections";
 import { INSPECTION_STATUSES } from "@/lib/quality-calculator";
-import type { InspectionFilters } from "@/lib/types";
+import { parsePagination, type PaginationParams } from "@/lib/pagination";
 import { StatusBadge } from "@/app/status-badge";
+import {
+  PageSizeSelect,
+  Pagination,
+  ScrollTable,
+  scrollTableHeadClass,
+} from "@/app/pagination";
 import { getCurrentOrganizationId } from "@/lib/organization";
 import { getProducts } from "@/lib/products";
 
-export async function InspectionTable({
-  filters,
-}: {
-  filters: Promise<InspectionFilters>;
+export async function InspectionTable({ searchParams }: {
+  searchParams: Promise<{ productId?: string; status?: string } & PaginationParams>;
 }) {
+  const resolvedParams = await searchParams;
+
+  const productId = typeof resolvedParams?.productId === "string" ? resolvedParams.productId : undefined;
+  const status = typeof resolvedParams?.status === "string" ? resolvedParams.status : undefined;
+  const { page, pageSize } = parsePagination(resolvedParams);
+
+  const filters = { productId, status };
+
   const organizationId = await getCurrentOrganizationId();
   if (!organizationId) {
-    return <p>Select an organization to see its inspections.</p>;
+    return <p> Select an organization to see its inspections. </p>;
   }
 
-  const { productId, status } = await filters;
-  const [products, inspections] = await Promise.all([
+  const [products, { data: inspections, count }] = await Promise.all([
     getProducts(organizationId),
-    getInspections(organizationId, { productId, status }),
+    getInspections(filters, page, pageSize),
   ]);
-
-  if (inspections.length === 0) {
-    console.info("[inspections] No hay inspecciones para mostrar");
-  }
 
   return (
     <>
-      <form className="flex gap-3 items-end text-sm">
+      <form className="flex flex-wrap gap-3 items-end text-sm mb-4">
         <label className="grid gap-1">
           Product
           <select name="productId" defaultValue={productId ?? ""}>
@@ -40,6 +47,7 @@ export async function InspectionTable({
             ))}
           </select>
         </label>
+
         <label className="grid gap-1">
           Status
           <select name="status" defaultValue={status ?? ""}>
@@ -51,53 +59,76 @@ export async function InspectionTable({
             ))}
           </select>
         </label>
-        <button type="submit">Filter</button>
+
+        <PageSizeSelect pageSize={pageSize} />
+
+        <button type="submit" className="px-3 py-1.5 border rounded bg-primary text-primary-foreground">
+          Filter
+        </button>
       </form>
 
       {inspections.length === 0 ? (
         <p>No inspections registered.</p>
       ) : (
-        <table>
-          <thead>
-            <tr>
-              <th>Date</th>
-              <th>Product</th>
-              <th>Batch</th>
-              <th>Inspected</th>
-              <th>Defective</th>
-              <th>% Defects</th>
-              <th>Status</th>
-              <th>Inspector</th>
-            </tr>
-          </thead>
-          <tbody>
-            {inspections.map((inspection) => (
-              <tr key={inspection.id}>
-                <td>{inspection.inspection_date}</td>
-                <td>
-                  {inspection.products
-                    ? `${inspection.products.sku} — ${inspection.products.name}`
-                    : "—"}
-                </td>
-                <td>
-                  <Link
-                    href={`/inspections/${inspection.id}`}
-                    className="underline"
-                  >
-                    {inspection.batch_number}
-                  </Link>
-                </td>
-                <td>{inspection.units_inspected}</td>
-                <td>{inspection.units_defective}</td>
-                <td>{inspection.defect_percentage}%</td>
-                <td>
-                  <StatusBadge status={inspection.status} />
-                </td>
-                <td>{inspection.inspector_name ?? "—"}</td>
+        <>
+          <ScrollTable>
+            <thead className={scrollTableHeadClass}>
+              <tr className="border-b">
+                <th className="w-12 p-2 text-left">#</th>
+                <th className="p-2 text-left">Date</th>
+                <th className="p-2 text-left">Product</th>
+                <th className="p-2 text-left">Batch</th>
+                <th className="p-2 text-left">Inspected</th>
+                <th className="p-2 text-left">Defective</th>
+                <th className="p-2 text-left">% Defects</th>
+                <th className="p-2 text-left">Status</th>
+                <th className="p-2 text-left">Inspector</th>
+                <th className="p-2 text-right"></th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {inspections.map((inspection, index) => {
+                const rowNumber = (page - 1) * pageSize + index + 1;
+
+                return (
+                  <tr key={inspection.id} className="border-b hover:bg-muted/50">
+                    <td className="p-2 text-muted-foreground font-mono">{rowNumber}</td>
+                    <td className="p-2">{inspection.inspection_date}</td>
+                    <td className="p-2">
+                      {inspection.products
+                        ? `${inspection.products.sku} — ${inspection.products.name}`
+                        : "—"}
+                    </td>
+                    <td className="p-2">{inspection.batch_number}</td>
+                    <td className="p-2">{inspection.units_inspected}</td>
+                    <td className="p-2">{inspection.units_defective}</td>
+                    <td className="p-2">{inspection.defect_percentage}%</td>
+                    <td className="p-2">
+                      <StatusBadge status={inspection.status} />
+                    </td>
+                    <td className="p-2">{inspection.inspector_name ?? "—"}</td>
+                    <td className="p-2 text-right">
+                      <Link
+                        href={`/inspections/${inspection.id}/edit`}
+                        className="underline text-sm"
+                      >
+                        Edit
+                      </Link>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </ScrollTable>
+
+          <Pagination
+            basePath="/inspections"
+            page={page}
+            pageSize={pageSize}
+            count={count}
+            params={{ productId, status }}
+          />
+        </>
       )}
     </>
   );
