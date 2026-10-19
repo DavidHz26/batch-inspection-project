@@ -1,34 +1,32 @@
 import { Suspense } from "react";
+import { Loading } from "@/app/loading-text";
 import { notFound } from "next/navigation";
 
 import { StatusBadge } from "@/app/status-badge";
 import { ConfirmSubmitButton } from "@/app/confirm-submit-button";
+import { ActionForm } from "@/app/action-form";
 import { deleteInspection, updateInspection } from "../../actions";
 import { InspectionForm } from "../../inspection-form";
 import { getCurrentOrganizationId } from "@/lib/organization";
 import { getInspection } from "@/lib/inspections";
 import { getProducts } from "@/lib/products";
 
-export default function EditInspectionPage({
-  params,
-}: PageProps<"/inspections/[id]/edit">) {
+export default function EditInspectionPage({ params }: PageProps<"/inspections/[id]/edit">) {
   return (
-    <Suspense fallback={<p>Loading...</p>}>
+    <Suspense fallback={<Loading label="inspection" />}>
       <EditInspection params={params} />
     </Suspense>
   );
 }
 
-async function EditInspection({
-  params,
-}: Pick<PageProps<"/inspections/[id]/edit">, "params">) {
+async function EditInspection({ params }: Pick<PageProps<"/inspections/[id]/edit">, "params">) {
   const { id } = await params;
-  const organizationId = await getCurrentOrganizationId();
-  if (!organizationId) notFound();
+  const organization_id = await getCurrentOrganizationId();
+  if (!organization_id) notFound();
 
   const [inspection, products] = await Promise.all([
     getInspection(id),
-    getProducts(organizationId),
+    getProducts(organization_id),
   ]);
   if (!inspection) notFound();
 
@@ -37,9 +35,9 @@ async function EditInspection({
   );
 
   return (
-    <div className="space-y-6">
+    <div className="max-w-xl space-y-8">
       <div>
-        <h1 className="text-xl font-semibold flex gap-3 items-center">
+        <h1 className="text-xl font-semibold flex flex-wrap gap-x-3 gap-y-1 items-center">
           Batch {inspection.batch_number}{" "}
           <StatusBadge status={inspection.status} />
         </h1>
@@ -49,25 +47,36 @@ async function EditInspection({
         </p>
       </div>
 
-      <InspectionForm
-        action={updateInspection.bind(null, inspection.id)}
-        products={options}
-        inspection={inspection}
-        submitLabel="Save"
-      />
+      <div className="border rounded-lg p-4 sm:p-6 space-y-4 bg-background">
+        <InspectionForm
+          key={`${inspection.id}-${inspection.units_inspected}-${inspection.units_defective}-${inspection.notes}`}
+          action={updateInspection.bind(null, inspection.id)}
+          products={options}
+          inspection={inspection}
+          submit_label="Save"
+          confirm_message={`Save changes to batch "${inspection.batch_number}"?`}
+          confirm_submessage="The defect percentage and status will be recalculated."
+        />
+      </div>
 
-      <section className="space-y-2 border-t pt-4">
-        <h2 className="font-semibold text-red-700">Delete inspection</h2>
-        <p className="text-sm text-gray-500">This action cannot be undone.</p>
-        <form action={deleteInspection.bind(null, inspection.id)}>
+      <div className="border border-red-900/30 rounded-lg p-4 sm:p-6 space-y-4 bg-red-950/10">
+        <div>
+          <h2 className="font-semibold text-red-700 text-base">Delete Inspection</h2>
+          <p className="text-sm text-muted-foreground">
+            This action is irreversible. Please be certain.
+          </p>
+        </div>
+        <ActionForm action={deleteInspection.bind(null, inspection.id)}>
           <ConfirmSubmitButton
-            message={`Delete the inspection of batch "${inspection.batch_number}"? This action cannot be undone.`}
-            className="bg-red-700"
+            message={`Delete the inspection of batch "${inspection.batch_number}"?`}
+            submessage="This action is permanent and cannot be reversed."
+            class_name="px-3.5 py-1.5 rounded text-sm bg-red-700 text-white hover:bg-red-800 transition-colors"
+            confirm_class_name="bg-red-700 text-white hover:bg-red-800"
           >
             Delete
           </ConfirmSubmitButton>
-        </form>
-      </section>
+        </ActionForm>
+      </div>
     </div>
   );
 }

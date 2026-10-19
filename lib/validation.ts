@@ -8,8 +8,8 @@ export class ValidationError extends Error {}
 
 type Values = Record<string, unknown>;
 
-export function formValues(formData: FormData): Values {
-  return Object.fromEntries(formData);
+export function formValues(form_data: FormData): Values {
+  return Object.fromEntries(form_data);
 }
 
 function text(values: Values, key: string): string {
@@ -18,24 +18,66 @@ function text(values: Values, key: string): string {
 }
 
 function requiredText(values: Values, key: string): string {
-  const value = text(values, key);
-  if (!value) throw new ValidationError(`El campo ${key} es obligatorio`);
-  return value;
+  const value = values[key];
+
+  if (value !== undefined && value !== null && typeof value !== "string") {
+    throw new ValidationError(`${key} must be text`);
+  }
+
+  const trimmed = text(values, key);
+  if (!trimmed) throw new ValidationError(`${key} is required`);
+
+  return trimmed;
 }
 
 function int(values: Values, key: string): number {
-  const value = Number(values[key]);
-  if (!Number.isInteger(value) || value < 0) {
-    throw new ValidationError(`Valor inválido para ${key}`);
+  const raw = values[key];
+  const value =
+    typeof raw === "number"
+      ? raw
+      : typeof raw === "string" && raw.trim() !== ""
+        ? Number(raw)
+        : NaN;
+
+  if (!Number.isInteger(value)) {
+    throw new ValidationError(`${key} must be an integer`);
   }
+
+  return value;
+}
+
+const DATE_PATTERN =
+  /^(\d{4})-(\d{2})-(\d{2})(?:[T ]\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?(?:Z|[+-]\d{2}:?\d{2})?)?$/;
+
+function date(values: Values, key: string): string {
+  const value = requiredText(values, key);
+  const match = DATE_PATTERN.exec(value);
+
+  if (!match) {
+    throw new ValidationError(`${key} must be a valid date (YYYY-MM-DD)`);
+  }
+
+  const [year, month, day] = match.slice(1, 4).map(Number);
+  const parsed = new Date(Date.UTC(year, month - 1, day));
+  const is_real_day =
+    parsed.getUTCFullYear() === year &&
+    parsed.getUTCMonth() === month - 1 &&
+    parsed.getUTCDate() === day;
+
+  if (!is_real_day || Number.isNaN(Date.parse(value.replace(" ", "T")))) {
+    throw new ValidationError(`${key} must be a valid date (YYYY-MM-DD)`);
+  }
+
   return value;
 }
 
 function bool(values: Values, key: string, fallback: boolean): boolean {
   const value = values[key];
+
   if (typeof value === "boolean") return value;
   if (value === "on" || value === "true") return true;
   if (value === undefined) return fallback;
+
   return false;
 }
 
@@ -56,38 +98,42 @@ export function parseOrganization(values: Values): OrganizationInput {
 
 export function parseProduct(
   values: Values,
-  { isActiveDefault = true } = {},
+  { is_active_default = true } = {},
 ): ProductInput {
   return {
     sku: requiredText(values, "sku"),
     name: requiredText(values, "name"),
-    is_active: bool(values, "is_active", isActiveDefault),
+    is_active: bool(values, "is_active", is_active_default),
   };
 }
 
 export function parseInspection(values: Values): InspectionInput {
-  const unitsInspected = int(values, "units_inspected");
-  const unitsDefective = int(values, "units_defective");
-  if (unitsInspected === 0) {
-    throw new ValidationError("units_inspected muist be greater than 0");
+  const units_inspected = int(values, "units_inspected");
+  const units_defective = int(values, "units_defective");
+
+  if (units_inspected <= 0) {
+    throw new ValidationError("units_inspected must be greater than 0");
   }
-  if (unitsDefective > unitsInspected) {
-    throw new ValidationError("units_defective cant be greater than units_inspected");
+  
+  if (units_defective < 0 || units_defective > units_inspected) {
+    throw new ValidationError(
+      "units_defective must be between 0 and units_inspected (inclusive)",
+    );
   }
 
-  const defectPercentage = calculateDefectPercentage(
-    unitsInspected,
-    unitsDefective,
+  const defect_percentage = calculateDefectPercentage(
+    units_inspected,
+    units_defective,
   );
 
   return {
     product_id: requiredText(values, "product_id"),
     batch_number: requiredText(values, "batch_number"),
-    inspection_date: requiredText(values, "inspection_date"),
-    units_inspected: unitsInspected,
-    units_defective: unitsDefective,
-    defect_percentage: defectPercentage,
-    status: getInspectionStatus(defectPercentage),
+    inspection_date: date(values, "inspection_date"),
+    units_inspected: units_inspected,
+    units_defective: units_defective,
+    defect_percentage: defect_percentage,
+    status: getInspectionStatus(defect_percentage),
     inspector_name: text(values, "inspector_name") || null,
     notes: text(values, "notes") || null,
   };

@@ -42,13 +42,13 @@ export type InspectionInput = Omit<
 >;
 
 export interface InspectionFilters {
-  productId?: string;
+  product_id?: string;
   status?: string;
 }
 
 export interface GlobalMetrics {
-  totalInspections: number;
-  totalInspectedUnits: number;
-  totalDefectiveUnits: number;
-  globalDefectPercentage: number | null;
+  total_inspections: number;
+  total_inspected_units: number;
+  total_defective_units: number;
+  global_defect_percentage: number | null;
 }

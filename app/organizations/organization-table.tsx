@@ -1,51 +1,56 @@
-import Link from "next/link";
+import { ClickableRow } from "@/app/clickable-row";
+import { Alert } from "@/app/alert";
 import { getCurrentOrganizationId, getOrganizationsPage } from "@/lib/organization";
 import { parsePagination, type PaginationParams } from "@/lib/pagination";
 import {
   PageSizeForm,
   Pagination,
   ScrollTable,
-  scrollTableHeadClass,
+  SCROLL_TABLE_HEAD_CLASS,
 } from "@/app/pagination";
 
-export async function OrganizationTable({ searchParams }: {
-  searchParams: Promise<PaginationParams>;
+export async function OrganizationTable({ search_params }: {
+  search_params: Promise<PaginationParams>;
 }) {
-  const { page, pageSize } = parsePagination(await searchParams);
+  const { page, page_size } = parsePagination(await search_params);
 
-  const [{ data: organizations, count }, currentId] = await Promise.all([
-    getOrganizationsPage(page, pageSize),
+  const [{ data: organizations, count }, current_id] = await Promise.all([
+    getOrganizationsPage(page, page_size),
     getCurrentOrganizationId(),
   ]);
 
   if (count === 0) {
     console.info("[organizations] No hay organizaciones para mostrar");
-    return <p> No organizations registered. </p>;
+    return <Alert variant="info">No organizations registered.</Alert>;
   }
 
   return (
     <>
-      <PageSizeForm pageSize={pageSize} />
+      <PageSizeForm page_size={page_size} />
 
       <ScrollTable>
-        <thead className={scrollTableHeadClass}>
+        <thead className={SCROLL_TABLE_HEAD_CLASS}>
           <tr className="border-b">
             <th className="w-12 p-2 text-left">#</th>
             <th className="p-2 text-left">Name</th>
             <th className="p-2 text-left">Slug</th>
             <th className="p-2 text-left">Created At</th>
-            <th className="p-2 text-right"></th>
           </tr>
         </thead>
         <tbody>
           {organizations.map((org, index) => (
-            <tr key={org.id} className="border-b hover:bg-muted/50">
+            <ClickableRow
+              key={org.id}
+              href={`/organizations/${org.id}/edit`}
+              label={`Edit ${org.name}`}
+              class_name="border-b"
+            >
               <td className="p-2 text-muted-foreground font-mono">
-                {(page - 1) * pageSize + index + 1}
+                {(page - 1) * page_size + index + 1}
               </td>
               <td className="p-2">
                 {org.name}
-                {org.id === currentId && (
+                {org.id === current_id && (
                   <span className="ml-2 rounded bg-blue-100 text-blue-800 px-2 py-0.5 text-xs">
                     Current
                   </span>
@@ -55,23 +60,15 @@ export async function OrganizationTable({ searchParams }: {
               <td className="p-2">
                 {new Date(org.created_at).toLocaleDateString()}
               </td>
-              <td className="p-2 text-right">
-                <Link
-                  href={`/organizations/${org.id}/edit`}
-                  className="underline text-sm"
-                >
-                  Edit
-                </Link>
-              </td>
-            </tr>
+            </ClickableRow>
           ))}
         </tbody>
       </ScrollTable>
 
       <Pagination
-        basePath="/organizations"
+        base_path="/organizations"
         page={page}
-        pageSize={pageSize}
+        page_size={page_size}
         count={count}
       />
     </>
