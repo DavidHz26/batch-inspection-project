@@ -1,5 +1,5 @@
 import { getCurrentOrganizationId, requireOrganizationId } from "./organization";
-import { calculateDefectPercentage, getInspectionStatus } from "./quality-calculator";
+import { classifyInspection } from "./quality-calculator";
 import { supabase } from "./supabase";
 import { pageRange, type Paginated } from "./pagination";
 import type { Inspection, InspectionInput, InspectionFilters } from "./types";
@@ -50,6 +50,7 @@ export async function getInspectionUnits(
     .from("inspections")
     .select("units_inspected, units_defective")
     .eq("organization_id", organization_id);
+
   for (const [column, value] of filterConditions(filters)) {
     query = query.eq(column, value);
   }
@@ -80,20 +81,12 @@ export async function insertInspection(
 ): Promise<Inspection> {
   const organization_id = await requireOrganizationId();
 
-  const defect_percentage = calculateDefectPercentage(
-    input.units_inspected,
-    input.units_defective
-  );
-
-  const status = getInspectionStatus(defect_percentage);
-
   const { data, error } = await supabase
     .from("inspections")
     .insert({
       ...input,
-      organization_id: organization_id,
-      defect_percentage,
-      status,
+      ...classifyInspection(input.units_inspected, input.units_defective),
+      organization_id,
     })
     .select(INSPECTION_SELECT)
     .single();
@@ -108,31 +101,17 @@ export async function updateInspection(
 ): Promise<Inspection> {
   const organization_id = await requireOrganizationId();
 
-  let calculated_fields = {};
-
-  const units_inspected = input.units_inspected !== undefined ? Number(input.units_inspected) : undefined;
-  const units_defective = input.units_defective !== undefined ? Number(input.units_defective) : undefined;
-
-  if (units_inspected !== undefined && units_defective !== undefined && !isNaN(units_inspected) && !isNaN(units_defective)) {
-    const defect_percentage = calculateDefectPercentage(
-      units_inspected,
-      units_defective
-    );
-    const status = getInspectionStatus(defect_percentage);
-    calculated_fields = { 
-      ...input, 
-      units_inspected: units_inspected, 
-      units_defective: units_defective,
-      defect_percentage, 
-      status 
-    };
-  } else {
-    calculated_fields = { ...input };
+  const changes: Partial<InspectionInput> = { ...input };
+  delete changes.defect_percentage;
+  delete changes.status;
+  
+  if (input.units_inspected !== undefined || input.units_defective !== undefined) {
+    Object.assign(changes, classifyInspection(input.units_inspected, input.units_defective));
   }
 
   const { data, error } = await supabase
     .from("inspections")
-    .update(calculated_fields)
+    .update(changes)
     .eq("organization_id", organization_id)
     .eq("id", id)
     .select(INSPECTION_SELECT)

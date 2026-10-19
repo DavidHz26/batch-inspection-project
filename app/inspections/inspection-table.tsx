@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ClickableRow } from "@/app/clickable-row";
+import { DefectPercentage } from "./defect-percentage";
 import { Alert } from "@/app/alert";
 import { getInspections, getInspectionUnits } from "@/lib/inspections";
 import { calculateGlobalMetrics, INSPECTION_STATUSES } from "@/lib/quality-calculator";
@@ -144,7 +145,13 @@ export async function InspectionTable({ search_params }: {
                     <td className="p-2">{inspection.batch_number}</td>
                     <td className="p-2">{inspection.units_inspected}</td>
                     <td className="p-2">{inspection.units_defective}</td>
-                    <td className="p-2">{inspection.defect_percentage}%</td>
+                    <td className="p-2">
+                      <DefectPercentage
+                        units_inspected={inspection.units_inspected}
+                        units_defective={inspection.units_defective}
+                        defect_percentage={inspection.defect_percentage}
+                      />
+                    </td>
                     <td className="p-2">
                       <StatusBadge status={inspection.status} />
                     </td>
