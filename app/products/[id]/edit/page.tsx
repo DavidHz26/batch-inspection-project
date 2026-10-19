@@ -44,22 +44,27 @@ async function EditProduct({ params }: Pick<PageProps<"/products/[id]/edit">, "p
       </div>
 
       <div className="border border-red-900/30 rounded-lg p-4 sm:p-6 space-y-4 bg-red-950/10">
-        <div>
-          <h2 className="font-semibold text-red-700 text-base">Delete Product</h2>
-          <p className="text-sm text-muted-foreground">
-            This action is irreversible. Please be certain. Products with inspections cannot be deleted; mark them as inactive instead.
-          </p>
+        <h2 className="font-semibold text-red-700 text-base">Danger</h2>
+
+        <div className="space-y-3">
+          <div>
+            <h3 className="font-medium text-sm">Delete Product</h3>
+            <p className="text-sm text-muted-foreground">
+              This action is irreversible. Please be certain. Products with inspections cannot be deleted; mark them as inactive instead.
+            </p>
+          </div>
+
+          <ActionForm action={deleteProduct.bind(null, product.id)}>
+            <ConfirmSubmitButton
+              message={`Delete "${product.name}" (${product.sku})?`}
+              submessage="This action is permanent and cannot be reversed."
+              class_name="px-3.5 py-1.5 rounded text-sm bg-red-700 text-white hover:bg-red-800 transition-colors"
+              confirm_class_name="bg-red-700 text-white hover:bg-red-800"
+            >
+              Delete
+            </ConfirmSubmitButton>
+          </ActionForm>
         </div>
-        <ActionForm action={deleteProduct.bind(null, product.id)}>
-          <ConfirmSubmitButton
-            message={`Delete "${product.name}" (${product.sku})?`}
-            submessage="This action is permanent and cannot be reversed."
-            class_name="px-3.5 py-1.5 rounded text-sm bg-red-700 text-white hover:bg-red-800 transition-colors"
-            confirm_class_name="bg-red-700 text-white hover:bg-red-800"
-          >
-            Delete
-          </ConfirmSubmitButton>
-        </ActionForm>
       </div>
     </div>
   );

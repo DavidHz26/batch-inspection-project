@@ -3,6 +3,7 @@ import type { FormAction } from "@/lib/action-state";
 import { ActionForm } from "@/app/action-form";
 import type { Inspection, Product } from "@/lib/types";
 import { ConfirmSubmitButton } from "@/app/confirm-submit-button";
+import { UnitsInputs } from "./units-inputs";
 
 export function InspectionForm({
   action,
@@ -46,6 +47,8 @@ export function InspectionForm({
           type="text"
           defaultValue={inspection?.batch_number}
           required
+          pattern=".*\S.*"
+          title="Batch cannot be empty or only spaces."
           placeholder="Ex. B-2026-001"
           className="border p-2 rounded"
         />
@@ -64,33 +67,10 @@ export function InspectionForm({
         />
       </label>
 
-      <label className="grid gap-1">
-        <span className="font-medium text-sm">Inspected Units *</span>
-        <input
-          name="units_inspected"
-          type="number"
-          defaultValue={inspection?.units_inspected}
-          min="1"
-          step="1"
-          required
-          placeholder="Ex. 100"
-          className="border p-2 rounded"
-        />
-      </label>
-
-      <label className="grid gap-1">
-        <span className="font-medium text-sm">Defective Units *</span>
-        <input
-          name="units_defective"
-          type="number"
-          defaultValue={inspection?.units_defective}
-          min="0"
-          step="1"
-          required
-          placeholder="Ex. 2"
-          className="border p-2 rounded"
-        />
-      </label>
+      <UnitsInputs
+        default_inspected={inspection?.units_inspected}
+        default_defective={inspection?.units_defective}
+      />
 
       <label className="grid gap-1">
         <span className="font-medium text-sm">Inspector (Optional)</span>

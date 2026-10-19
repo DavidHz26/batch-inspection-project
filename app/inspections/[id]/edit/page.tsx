@@ -60,22 +60,27 @@ async function EditInspection({ params }: Pick<PageProps<"/inspections/[id]/edit
       </div>
 
       <div className="border border-red-900/30 rounded-lg p-4 sm:p-6 space-y-4 bg-red-950/10">
-        <div>
-          <h2 className="font-semibold text-red-700 text-base">Delete Inspection</h2>
-          <p className="text-sm text-muted-foreground">
-            This action is irreversible. Please be certain.
-          </p>
+        <h2 className="font-semibold text-red-700 text-base">Danger</h2>
+        
+        <div className="space-y-3">
+          <div>
+            <h3 className="font-medium text-sm">Delete Inspection</h3>
+            <p className="text-sm text-muted-foreground">
+              This action is irreversible. Please be certain.
+            </p>
+          </div>
+
+          <ActionForm action={deleteInspection.bind(null, inspection.id)}>
+            <ConfirmSubmitButton
+              message={`Delete the inspection of batch "${inspection.batch_number}"?`}
+              submessage="This action is permanent and cannot be reversed."
+              class_name="px-3.5 py-1.5 rounded text-sm bg-red-700 text-white hover:bg-red-800 transition-colors"
+              confirm_class_name="bg-red-700 text-white hover:bg-red-800"
+            >
+              Delete
+            </ConfirmSubmitButton>
+          </ActionForm>
         </div>
-        <ActionForm action={deleteInspection.bind(null, inspection.id)}>
-          <ConfirmSubmitButton
-            message={`Delete the inspection of batch "${inspection.batch_number}"?`}
-            submessage="This action is permanent and cannot be reversed."
-            class_name="px-3.5 py-1.5 rounded text-sm bg-red-700 text-white hover:bg-red-800 transition-colors"
-            confirm_class_name="bg-red-700 text-white hover:bg-red-800"
-          >
-            Delete
-          </ConfirmSubmitButton>
-        </ActionForm>
       </div>
     </div>
   );
