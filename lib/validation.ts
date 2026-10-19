@@ -1,10 +1,8 @@
-import {
-  calculateDefectPercentage,
-  getInspectionStatus,
-} from "./quality-calculator";
+import { ValidationError } from "./errors";
+import { classifyInspection } from "./quality-calculator";
 import type { InspectionInput, OrganizationInput, ProductInput } from "./types";
 
-export class ValidationError extends Error {}
+export { ValidationError };
 
 type Values = Record<string, unknown>;
 
@@ -30,21 +28,6 @@ function requiredText(values: Values, key: string): string {
   return trimmed;
 }
 
-function int(values: Values, key: string): number {
-  const raw = values[key];
-  const value =
-    typeof raw === "number"
-      ? raw
-      : typeof raw === "string" && raw.trim() !== ""
-        ? Number(raw)
-        : NaN;
-
-  if (!Number.isInteger(value)) {
-    throw new ValidationError(`${key} must be an integer`);
-  }
-
-  return value;
-}
 
 const DATE_PATTERN =
   /^(\d{4})-(\d{2})-(\d{2})(?:[T ]\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?(?:Z|[+-]\d{2}:?\d{2})?)?$/;
@@ -107,33 +90,19 @@ export function parseProduct(
   };
 }
 
+// El lote es texto, la fecha es válida y las unidades las valida y clasifica classifyInspection (enteros, revisadas > 0, 0 <= defectuosas <= revisadas).
 export function parseInspection(values: Values): InspectionInput {
-  const units_inspected = int(values, "units_inspected");
-  const units_defective = int(values, "units_defective");
-
-  if (units_inspected <= 0) {
-    throw new ValidationError("units_inspected must be greater than 0");
-  }
-  
-  if (units_defective < 0 || units_defective > units_inspected) {
-    throw new ValidationError(
-      "units_defective must be between 0 and units_inspected (inclusive)",
-    );
-  }
-
-  const defect_percentage = calculateDefectPercentage(
-    units_inspected,
-    units_defective,
-  );
+  const { units_inspected, units_defective, defect_percentage, status } =
+    classifyInspection(values.units_inspected, values.units_defective);
 
   return {
     product_id: requiredText(values, "product_id"),
     batch_number: requiredText(values, "batch_number"),
     inspection_date: date(values, "inspection_date"),
-    units_inspected: units_inspected,
-    units_defective: units_defective,
-    defect_percentage: defect_percentage,
-    status: getInspectionStatus(defect_percentage),
+    units_inspected,
+    units_defective,
+    defect_percentage,
+    status,
     inspector_name: text(values, "inspector_name") || null,
     notes: text(values, "notes") || null,
   };

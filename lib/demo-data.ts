@@ -1,5 +1,5 @@
 import { supabase } from "./supabase";
-import { calculateDefectPercentage, getInspectionStatus } from "./quality-calculator";
+import { classifyInspection } from "./quality-calculator";
 
 // Peligroso al manipular los datos, solo están disponibles si el servidor lo habilita con DEMO_RESET_ENABLED=true
 export function isDemoDataEnabled(): boolean {
@@ -53,24 +53,15 @@ async function insertMissingSampleInspections(organization_id: string): Promise<
 
   const rows = DEMO_INSPECTIONS.filter(
     (inspection) => !existing_batches.has(inspection.batch_number),
-  ).map((inspection) => {
-    const defect_percentage = calculateDefectPercentage(
-      inspection.units_inspected,
-      inspection.units_defective,
-    );
-    return {
-      organization_id,
-      product_id: product_ids.get(inspection.sku),
-      batch_number: inspection.batch_number,
-      inspection_date: localDate(inspection.days_ago),
-      units_inspected: inspection.units_inspected,
-      units_defective: inspection.units_defective,
-      defect_percentage,
-      status: getInspectionStatus(defect_percentage),
-      inspector_name: inspection.inspector_name,
-      notes: null,
-    };
-  });
+  ).map((inspection) => ({
+    organization_id,
+    product_id: product_ids.get(inspection.sku),
+    batch_number: inspection.batch_number,
+    inspection_date: localDate(inspection.days_ago),
+    ...classifyInspection(inspection.units_inspected, inspection.units_defective),
+    inspector_name: inspection.inspector_name,
+    notes: null,
+  }));
   if (rows.length === 0) return 0;
 
   const { error } = await supabase.from("inspections").insert(rows);

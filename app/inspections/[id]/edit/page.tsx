@@ -3,6 +3,7 @@ import { Loading } from "@/app/loading-text";
 import { notFound } from "next/navigation";
 
 import { StatusBadge } from "@/app/status-badge";
+import { exactDefectPercentage, isRoundingMisleading } from "@/lib/quality-calculator";
 import { ConfirmSubmitButton } from "@/app/confirm-submit-button";
 import { ActionForm } from "@/app/action-form";
 import { deleteInspection, updateInspection } from "../../actions";
@@ -30,6 +31,15 @@ async function EditInspection({ params }: Pick<PageProps<"/inspections/[id]/edit
   ]);
   if (!inspection) notFound();
 
+  const rounding_misleading = isRoundingMisleading(
+    inspection.units_inspected,
+    inspection.units_defective,
+  );
+  const exact_percentage = exactDefectPercentage(
+    inspection.units_inspected,
+    inspection.units_defective,
+  );
+
   const options = products.filter(
     (product) => product.is_active || product.id === inspection.product_id,
   );
@@ -42,7 +52,15 @@ async function EditInspection({ params }: Pick<PageProps<"/inspections/[id]/edit
           <StatusBadge status={inspection.status} />
         </h1>
         <p className="text-sm text-gray-500">
-          {inspection.defect_percentage}% defects · created{" "}
+          {rounding_misleading ? (
+            <>
+              <span className="font-medium text-amber-700">{exact_percentage}% defects</span>{" "}
+              (exact value used for the status; shown as {inspection.defect_percentage}%)
+            </>
+          ) : (
+            <>{inspection.defect_percentage}% defects</>
+          )}{" "}
+          · created{" "}
           {new Date(inspection.created_at).toLocaleString()}
         </p>
       </div>
