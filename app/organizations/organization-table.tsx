@@ -51,7 +51,7 @@ export async function OrganizationTable({ search_params }: {
               <td className="p-2">
                 {org.name}
                 {org.id === current_id && (
-                  <span className="ml-2 rounded bg-blue-100 text-blue-800 px-2 py-0.5 text-xs">
+                  <span className="ml-2 rounded bg-primary/20 text-primary px-2 py-0.5 text-xs">
                     Current
                   </span>
                 )}

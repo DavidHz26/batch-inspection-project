@@ -23,16 +23,16 @@ async function EditProduct({ params }: Pick<PageProps<"/products/[id]/edit">, "p
   if (!product) notFound();
 
   return (
-    <div className="max-w-xl space-y-8">
+    <div className="max-w-xl mx-auto space-y-8">
       <div>
         <h1 className="text-xl font-semibold">Edit {product.name}</h1>
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-muted-foreground">
           SKU {product.sku} · {product.is_active ? "active" : "inactive"} ·
           created {new Date(product.created_at).toLocaleString()}
         </p>
       </div>
 
-      <div className="border rounded-lg p-4 sm:p-6 space-y-4 bg-background">
+      <div className="border rounded-xl p-4 sm:p-6 space-y-4 bg-surface">
         <ProductForm
           key={`${product.id}-${product.sku}-${product.name}-${product.is_active}`}
           action={updateProduct.bind(null, product.id)}
@@ -43,10 +43,10 @@ async function EditProduct({ params }: Pick<PageProps<"/products/[id]/edit">, "p
         />
       </div>
 
-      <div className="border border-red-900/30 rounded-lg p-4 sm:p-6 space-y-4 bg-red-950/10">
-        <h2 className="font-semibold text-red-700 text-base">Danger</h2>
+      <div className="border border-danger/40 rounded-xl p-4 sm:p-6 space-y-4 bg-danger/5">
+        <h2 className="font-semibold text-danger text-base">Danger</h2>
 
-        <div className="space-y-3">
+        <div className="space-y-4">
           <div>
             <h3 className="font-medium text-sm">Delete Product</h3>
             <p className="text-sm text-muted-foreground">
@@ -54,12 +54,12 @@ async function EditProduct({ params }: Pick<PageProps<"/products/[id]/edit">, "p
             </p>
           </div>
 
-          <ActionForm action={deleteProduct.bind(null, product.id)}>
+          <ActionForm action={deleteProduct.bind(null, product.id)} className="flex justify-end w-full">
             <ConfirmSubmitButton
               message={`Delete "${product.name}" (${product.sku})?`}
               submessage="This action is permanent and cannot be reversed."
-              class_name="px-3.5 py-1.5 rounded text-sm bg-red-700 text-white hover:bg-red-800 transition-colors"
-              confirm_class_name="bg-red-700 text-white hover:bg-red-800"
+              class_name="px-5 py-2 rounded-full text-sm font-semibold bg-danger text-white hover:bg-danger/85 transition-colors shadow-sm"
+              confirm_class_name="bg-danger text-white hover:bg-danger/85"
             >
               Delete
             </ConfirmSubmitButton>

@@ -11,7 +11,7 @@ export default function NewInspectionPage() {
     <div className="max-w-xl space-y-8">
       <div>
         <h1 className="text-xl font-semibold">New Inspection</h1>
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-muted-foreground">
           The defect percentage and status are calculated automatically.
         </p>
       </div>
@@ -38,7 +38,7 @@ async function NewInspection() {
   }
 
   return (
-    <div className="border rounded-lg p-4 sm:p-6 space-y-4 bg-background">
+    <div className="border rounded-xl p-4 sm:p-6 space-y-4 bg-surface">
       <InspectionForm
         action={createInspection}
         products={products}

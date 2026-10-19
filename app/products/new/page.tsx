@@ -10,7 +10,7 @@ export default function NewProductPage() {
     <div className="max-w-xl space-y-8">
       <div>
         <h1 className="text-xl font-semibold">New Product</h1>
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-muted-foreground">
           It will be added to the active organization.
         </p>
       </div>
@@ -29,7 +29,7 @@ async function NewProduct() {
   }
 
   return (
-    <div className="border rounded-lg p-4 sm:p-6 space-y-4 bg-background">
+    <div className="border rounded-xl p-4 sm:p-6 space-y-4 bg-surface">
       <ProductForm
         action={createProduct}
         submit_label="Create"

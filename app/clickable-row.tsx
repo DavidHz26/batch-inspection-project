@@ -44,7 +44,7 @@ export function ClickableRow({
       onAuxClick={handleAuxClick}
       onKeyDown={handleKeyDown}
       onMouseEnter={() => router.prefetch(href)}
-      className={`cursor-pointer hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-blue-600 ${class_name}`}
+      className={`cursor-pointer hover:bg-surface-raised focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primary ${class_name}`}
     >
       {children}
     </tr>

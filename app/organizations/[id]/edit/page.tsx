@@ -28,16 +28,16 @@ async function EditOrganization({ params }: Pick<PageProps<"/organizations/[id]/
   const demo_enabled = isDemoDataEnabled();
 
   return (
-    <div className="max-w-xl space-y-8">
+    <div className="max-w-xl mx-auto space-y-8">
       <div>
         <h1 className="text-xl font-semibold">Edit {organization.name}</h1>
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-muted-foreground">
           <span className="font-mono">{organization.slug}</span> · created{" "}
           {new Date(organization.created_at).toLocaleString()}
         </p>
       </div>
 
-      <div className="border rounded-lg p-4 sm:p-6 space-y-4 bg-background">
+      <div className="border rounded-xl p-4 sm:p-6 space-y-4 bg-surface">
         <OrganizationForm
           key={`${organization.id}-${organization.name}`}
           action={updateOrganization.bind(null, organization.id)}
@@ -49,31 +49,36 @@ async function EditOrganization({ params }: Pick<PageProps<"/organizations/[id]/
       </div>
 
       {demo_enabled && (
-        <div className="border rounded-lg p-4 sm:p-6 space-y-4 bg-background">
-          <div>
-            <h2 className="font-semibold text-base">Demo data</h2>
-            <p className="text-sm text-muted-foreground">
-              Adds the 5-product catalog and sample inspections that this organization is
-              missing. Nothing is deleted.
-            </p>
+        <div className="border border-success/40 rounded-xl p-4 sm:p-6 space-y-4 bg-success/5">
+          <h2 className="font-semibold text-success text-base">Demo</h2>
+          
+          <div className="space-y-4">
+            <div>
+              <h3 className="font-medium text-sm">Load sample data</h3>
+              <p className="text-sm text-muted-foreground">
+                Adds the 5-product catalog and sample inspections that this organization is
+                missing. Nothing is deleted.
+              </p>
+            </div>
+            
+            <ActionForm action={loadDemoData.bind(null, organization.id)} className="flex justify-end w-full">
+              <ConfirmSubmitButton
+                message={`Load demo data into "${organization.name}"?`}
+                submessage="Missing catalog products and sample inspections will be added. Existing data is kept."
+                class_name="px-5 py-2 rounded-full text-sm font-semibold bg-success text-success-foreground hover:bg-success/90 shadow-sm transition-colors"
+              >
+                Load
+              </ConfirmSubmitButton>
+            </ActionForm>
           </div>
-          <ActionForm action={loadDemoData.bind(null, organization.id)}>
-            <ConfirmSubmitButton
-              message={`Load demo data into "${organization.name}"?`}
-              submessage="Missing catalog products and sample inspections will be added. Existing data is kept."
-              class_name="px-3.5 py-1.5 rounded text-sm bg-primary text-primary-foreground"
-            >
-              Load
-            </ConfirmSubmitButton>
-          </ActionForm>
         </div>
       )}
 
-      <div className="border border-red-900/30 rounded-lg p-4 sm:p-6 space-y-6 bg-red-950/10">
-        <h2 className="font-semibold text-red-700 text-base">Danger</h2>
+      <div className="border border-danger/40 rounded-xl p-4 sm:p-6 space-y-6 bg-danger/5">
+        <h2 className="font-semibold text-danger text-base">Danger</h2>
 
         {demo_enabled && (
-          <div className="space-y-3">
+          <div className="space-y-4">
             <div>
               <h3 className="font-medium text-sm">Reset to demo data</h3>
               <p className="text-sm text-muted-foreground">
@@ -81,12 +86,12 @@ async function EditOrganization({ params }: Pick<PageProps<"/organizations/[id]/
                 initial catalog with sample inspections. Other organizations are not affected.
               </p>
             </div>
-            <ActionForm action={resetDemoData.bind(null, organization.id)}>
+            <ActionForm action={resetDemoData.bind(null, organization.id)} className="flex justify-end w-full">
               <ConfirmSubmitButton
                 message={`Reset "${organization.name}" to demo data?`}
                 submessage="All its products and inspections will be deleted and replaced with the initial demo data."
-                class_name="px-3.5 py-1.5 rounded text-sm bg-red-700 text-white hover:bg-red-800 transition-colors"
-                confirm_class_name="bg-red-700 text-white hover:bg-red-800"
+                class_name="px-5 py-2 rounded-full text-sm font-semibold bg-danger text-white hover:bg-danger/85 transition-colors shadow-sm"
+                confirm_class_name="bg-danger text-white hover:bg-danger/85"
               >
                 Reset
               </ConfirmSubmitButton>
@@ -94,7 +99,7 @@ async function EditOrganization({ params }: Pick<PageProps<"/organizations/[id]/
           </div>
         )}
 
-        <div className="space-y-3">
+        <div className="space-y-4">
           <div>
             <h3 className="font-medium text-sm">Delete organization</h3>
             <p className="text-sm text-muted-foreground">
@@ -102,12 +107,12 @@ async function EditOrganization({ params }: Pick<PageProps<"/organizations/[id]/
             </p>
           </div>
           
-          <ActionForm action={deleteOrganization.bind(null, organization.id)}>
+          <ActionForm action={deleteOrganization.bind(null, organization.id)} className="flex justify-end w-full">
             <ConfirmSubmitButton
               message={`Delete "${organization.name}"?`}
               submessage="This action is permanent and cannot be reversed."
-              class_name="px-3.5 py-1.5 rounded text-sm bg-red-700 text-white hover:bg-red-800 transition-colors"
-              confirm_class_name="bg-red-700 text-white hover:bg-red-800"
+              class_name="px-5 py-2 rounded-full text-sm font-semibold bg-danger text-white hover:bg-danger/85 transition-colors shadow-sm"
+              confirm_class_name="bg-danger text-white hover:bg-danger/85"
             >
               Delete
             </ConfirmSubmitButton>

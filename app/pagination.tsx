@@ -13,7 +13,7 @@ function HiddenParams({ params }: { params: QueryParams }) {
 export function PageSizeSelect({ page_size }: { page_size: number }) {
   return (
     <label className="grid gap-1">
-      Show items
+      Items
       <select name="page_size" defaultValue={page_size.toString()}>
         {PAGE_SIZES.map((size) => (
           <option key={size} value={size}>
@@ -38,7 +38,7 @@ export function PageSizeForm({
       <PageSizeSelect page_size={page_size} />
       <button
         type="submit"
-        className="px-3 py-1.5 border rounded bg-primary text-primary-foreground"
+        className="px-4 py-1.5 rounded-full bg-primary text-primary-foreground"
       >
         Apply
       </button>
@@ -48,13 +48,13 @@ export function PageSizeForm({
 
 export function ScrollTable({ children }: { children: ReactNode }) {
   return (
-    <div className="max-h-[60vh] sm:max-h-[500px] overflow-auto border rounded-md">
+    <div className="h-[410px] flex flex-col overflow-auto border rounded-xl bg-surface">
       <table className="w-full min-w-max border-collapse [&_td]:whitespace-nowrap [&_th]:whitespace-nowrap">{children}</table>
     </div>
   );
 }
 
-export const SCROLL_TABLE_HEAD_CLASS = "sticky top-0 bg-background shadow-sm z-10";
+export const SCROLL_TABLE_HEAD_CLASS = "sticky top-0 bg-surface-raised z-10";
 
 export function Pagination({
   base_path,
@@ -84,11 +84,11 @@ export function Pagination({
 
   const navButton = (label: string, target_page: number, enabled: boolean) =>
     enabled ? (
-      <Link href={pageUrl(target_page)} className="px-3 py-1 border rounded">
+      <Link href={pageUrl(target_page)} className="px-4 py-1 rounded-full border bg-surface-raised hover:bg-primary hover:border-primary transition-colors">
         {label}
       </Link>
     ) : (
-      <span className="px-3 py-1 border rounded opacity-40 cursor-not-allowed">
+      <span className="px-4 py-1 rounded-full border opacity-40 cursor-not-allowed">
         {label}
       </span>
     );
@@ -110,7 +110,7 @@ export function Pagination({
             min={1}
             max={total_pages}
             defaultValue={current_page}
-            className="w-16 px-2 py-1 border rounded text-center"
+            className="w-16 px-2 py-1 text-center"
           />
         </form>
 

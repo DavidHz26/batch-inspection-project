@@ -2,7 +2,7 @@
 
 import { useState, type ChangeEvent } from "react";
 
-const INPUT_CLASS = "border p-2 rounded";
+const INPUT_CLASS = "p-2";
 
 function defectiveError(defective: string, inspected: string): string {
   const max = Number(inspected);

@@ -42,13 +42,17 @@ export async function getInspections(
 
 export async function getInspectionUnits(
   filters: InspectionFilters = {},
-): Promise<Pick<Inspection, "units_inspected" | "units_defective">[]> {
+): Promise<{
+  units_inspected: number;
+  units_defective: number;
+  products: { sku: string; name: string } | { sku: string; name: string }[] | null;
+}[]> {
   const organization_id = await getCurrentOrganizationId();
   if (!organization_id) return [];
 
   let query = supabase
     .from("inspections")
-    .select("units_inspected, units_defective")
+    .select("units_inspected, units_defective, products(sku, name)")
     .eq("organization_id", organization_id);
 
   for (const [column, value] of filterConditions(filters)) {
@@ -57,8 +61,8 @@ export async function getInspectionUnits(
 
   const { data, error } = await query;
 
-  if (error) throw new Error(`Error while trying to get the insepections: ${error.message}`);
-  return data || [];
+  if (error) throw new Error(`Error while trying to get the inspections: ${error.message}`);
+  return (data || []) as any;
 }
 
 export async function getInspection(id: string): Promise<Inspection | null> {

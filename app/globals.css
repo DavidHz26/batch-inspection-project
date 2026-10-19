@@ -1,17 +1,43 @@
 @import "tailwindcss";
 
-/* Colores del tema: generan bg-primary, text-muted-foreground, bg-background, etc. */
 @theme {
-  --color-background: #ffffff;
-  --color-foreground: #171717;
-  --color-primary: #171717;
+  --color-background: #0a0a0b;
+  --color-foreground: #f4f4f5;
+
+  /* Superficies y bordes */
+  --color-surface: #1c1c1e;
+  --color-surface-raised: #2c2c2e;
+  --color-border: #38383a;
+
+  --color-muted: #2c2c2e;
+  --color-muted-foreground: #a1a1aa;
+
+  /* Acciones y llamadas */
+  --color-primary: #3b82f6;
   --color-primary-foreground: #ffffff;
-  --color-muted: #f3f4f6;
-  --color-muted-foreground: #6b7280;
+  --color-accent: #8b5cf6;
+  --color-accent-foreground: #ffffff;
+  --color-cta: #ffffff;
+  --color-cta-foreground: #0a0a0b;
+
+  /* Estados y resultados */
+  --color-success: #22c55e;
+  --color-warning: #facc15;
+  --color-danger: #ef4444;
 }
 
-/* En la capa base para que las clases de utilidad puedan sobrescribirlos. */
 @layer base {
+  html {
+    color-scheme: dark;
+  }
+
+  /* Color de borde global */
+  *,
+  ::before,
+  ::after {
+    border-color: var(--color-border);
+  }
+
   body {
     @apply bg-background text-foreground;
     font-family: system-ui, sans-serif;
@@ -20,11 +46,17 @@
   input,
   select,
   textarea {
-    @apply border rounded px-2 py-1 bg-background;
+    @apply rounded-lg border px-3 py-1.5 bg-surface-raised text-foreground placeholder:text-muted-foreground;
+  }
+
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible {
+    @apply outline-2 outline-offset-1 outline-primary;
   }
 
   button {
-    @apply border rounded px-3 py-1 bg-primary text-primary-foreground cursor-pointer;
+    @apply rounded-full px-4 py-1.5 font-medium bg-primary text-primary-foreground cursor-pointer transition-colors hover:bg-primary/85;
   }
 
   button:disabled {
@@ -38,5 +70,9 @@
   th,
   td {
     @apply border-b py-1 pr-4;
+  }
+
+  th {
+    @apply text-muted-foreground font-medium;
   }
 }

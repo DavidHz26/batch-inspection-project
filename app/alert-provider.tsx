@@ -85,7 +85,7 @@ export function AlertProvider({ children }: { children: ReactNode }) {
         className="fixed top-4 inset-x-4 z-50 flex flex-col gap-2 sm:inset-x-auto sm:right-4 sm:w-full sm:max-w-sm"
       >
         {toasts.map((toast) => (
-          <div key={toast.id} className="shadow-lg">
+          <div key={toast.id} className="rounded-xl bg-surface shadow-lg shadow-black/50">
             <Alert
               variant={toast.variant}
               title={toast.title}
