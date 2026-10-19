@@ -7,7 +7,7 @@ export function ConfirmSubmitButton({
   submessage,
   children,
   class_name,
-  confirm_class_name = "bg-primary text-primary-foreground",
+  confirm_class_name = "bg-danger text-danger-foreground hover:opacity-90",
   ...props
 }: ComponentProps<"button"> & {
   message: string;
@@ -49,27 +49,29 @@ export function ConfirmSubmitButton({
       </button>
 
       {is_open && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-background border p-4 sm:p-6 rounded-lg shadow-lg max-w-sm w-full space-y-4">
-            <h3 className="text-sm text-muted-foreground">{message}</h3>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-[#1c1c1e] border border-[#38383a] p-5 sm:p-6 rounded-xl shadow-2xl max-w-sm w-full space-y-4">
+            <h3 className="text-base font-medium text-foreground tracking-tight">
+              {message}
+            </h3>
     
             {submessage && (
-              <p className="text-xs italic text-muted-foreground/80">
+              <p className="text-xs text-muted-foreground leading-relaxed">
                 {submessage}
               </p>
             )}
 
-            <div className="flex justify-end gap-2 pt-2">
+            <div className="flex justify-end gap-2.5 pt-2">
               <button
                 type="button"
-                className="px-3.5 py-1.5 border rounded text-sm bg-background text-foreground hover:bg-muted"
+                className="px-3.5 py-1.5 border border-[#38383a] rounded-lg text-sm font-medium bg-[#2c2c2e] text-foreground hover:bg-[#3a3a3c] transition-colors"
                 onClick={handleClose}
               >
                 Cancel
               </button>
               <button
                 type="button"
-                className={`px-3.5 py-1.5 rounded text-sm ${confirm_class_name}`}
+                className={`px-3.5 py-1.5 rounded-lg text-sm font-medium transition-colors ${confirm_class_name}`}
                 onClick={handleConfirm}
               >
                 Confirm

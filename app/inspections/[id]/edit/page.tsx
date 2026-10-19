@@ -45,16 +45,16 @@ async function EditInspection({ params }: Pick<PageProps<"/inspections/[id]/edit
   );
 
   return (
-    <div className="max-w-xl space-y-8">
+    <div className="max-w-xl mx-auto space-y-8">
       <div>
         <h1 className="text-xl font-semibold flex flex-wrap gap-x-3 gap-y-1 items-center">
           Batch {inspection.batch_number}{" "}
           <StatusBadge status={inspection.status} />
         </h1>
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-muted-foreground">
           {rounding_misleading ? (
             <>
-              <span className="font-medium text-amber-700">{exact_percentage}% defects</span>{" "}
+              <span className="font-medium text-warning">{exact_percentage}% defects</span>{" "}
               (exact value used for the status; shown as {inspection.defect_percentage}%)
             </>
           ) : (
@@ -65,7 +65,7 @@ async function EditInspection({ params }: Pick<PageProps<"/inspections/[id]/edit
         </p>
       </div>
 
-      <div className="border rounded-lg p-4 sm:p-6 space-y-4 bg-background">
+      <div className="border rounded-xl p-4 sm:p-6 space-y-4 bg-surface">
         <InspectionForm
           key={`${inspection.id}-${inspection.units_inspected}-${inspection.units_defective}-${inspection.notes}`}
           action={updateInspection.bind(null, inspection.id)}
@@ -77,10 +77,10 @@ async function EditInspection({ params }: Pick<PageProps<"/inspections/[id]/edit
         />
       </div>
 
-      <div className="border border-red-900/30 rounded-lg p-4 sm:p-6 space-y-4 bg-red-950/10">
-        <h2 className="font-semibold text-red-700 text-base">Danger</h2>
+      <div className="border border-danger/40 rounded-xl p-4 sm:p-6 space-y-4 bg-danger/5">
+        <h2 className="font-semibold text-danger text-base">Danger</h2>
         
-        <div className="space-y-3">
+        <div className="space-y-4">
           <div>
             <h3 className="font-medium text-sm">Delete Inspection</h3>
             <p className="text-sm text-muted-foreground">
@@ -88,12 +88,12 @@ async function EditInspection({ params }: Pick<PageProps<"/inspections/[id]/edit
             </p>
           </div>
 
-          <ActionForm action={deleteInspection.bind(null, inspection.id)}>
+          <ActionForm action={deleteInspection.bind(null, inspection.id)} className="flex justify-end w-full">
             <ConfirmSubmitButton
               message={`Delete the inspection of batch "${inspection.batch_number}"?`}
               submessage="This action is permanent and cannot be reversed."
-              class_name="px-3.5 py-1.5 rounded text-sm bg-red-700 text-white hover:bg-red-800 transition-colors"
-              confirm_class_name="bg-red-700 text-white hover:bg-red-800"
+              class_name="px-5 py-2 rounded-full text-sm font-semibold bg-danger text-white hover:bg-danger/85 transition-colors shadow-sm"
+              confirm_class_name="bg-danger text-white hover:bg-danger/85"
             >
               Delete
             </ConfirmSubmitButton>

@@ -63,8 +63,8 @@ export async function ProductTable({ search_params }: {
                       <span
                         className={`rounded px-2 py-0.5 text-xs ${
                           product.is_active
-                            ? "bg-green-100 text-green-800"
-                            : "bg-gray-100 text-gray-600"
+                            ? "bg-success/15 text-success"
+                            : "bg-surface-raised text-muted-foreground"
                         }`}
                       >
                         {product.is_active ? "Active" : "Inactive"}

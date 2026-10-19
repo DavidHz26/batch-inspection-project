@@ -23,14 +23,14 @@ export function InspectionForm({
   confirm_class_name?: string;
 }) {
   return (
-    <ActionForm action={action} className="grid gap-4 max-w-lg">
+    <ActionForm action={action} className="grid gap-4 w-full">
 
       <label className="grid gap-1">
         <span className="font-medium text-sm">Product *</span>
         <select
           name="product_id"
           defaultValue={inspection?.product_id ?? ""}
-          required className="border p-2 rounded bg-background">
+          required className="p-2 w-full">
           <option value="">Selecciona un producto...</option>
           {products.map((product) => (
             <option key={product.id} value={product.id}>
@@ -50,7 +50,7 @@ export function InspectionForm({
           pattern=".*\S.*"
           title="Batch cannot be empty or only spaces."
           placeholder="Ex. B-2026-001"
-          className="border p-2 rounded"
+          className="p-2 w-full"
         />
       </label>
 
@@ -63,7 +63,7 @@ export function InspectionForm({
           defaultValue={
             inspection?.inspection_date ?? new Date().toISOString().split("T")[0]
           }
-          className="border p-2 rounded"
+          className="p-2 w-full"
         />
       </label>
 
@@ -79,7 +79,7 @@ export function InspectionForm({
           type="text"
           defaultValue={inspection?.inspector_name ?? ""}
           placeholder="Ex. David Hernandez"
-          className="border p-2 rounded"
+          className="p-2 w-full"
         />
       </label>
 
@@ -90,22 +90,25 @@ export function InspectionForm({
           rows={3}
           defaultValue={inspection?.notes ?? ""}
           placeholder="Aditional comments..."
-          className="border p-2 rounded"
+          className="p-2 w-full"
         />
       </label>
 
-      <div className="flex gap-3 items-center pt-2">
+      <div className="flex items-center justify-end gap-3 pt-2">
+        <Link 
+          href="/inspections" 
+          className="px-4 py-2 border border-[#38383a] rounded-full text-sm font-medium bg-[#2c2c2e] text-foreground hover:bg-[#3a3a3c] transition-colors"
+        >
+          Cancel
+        </Link>
         <ConfirmSubmitButton
           message={confirm_message}
           submessage={confirm_submessage}
-          class_name="bg-primary text-primary-foreground px-4 py-2 rounded font-medium hover:opacity-90"
+          class_name="px-5 py-2 rounded-full text-sm font-semibold bg-primary text-primary-foreground hover:bg-primary/90 transition-colors shadow-sm"
           confirm_class_name={confirm_class_name}
         >
           {submit_label}
         </ConfirmSubmitButton>
-        <Link href="/inspections" className="text-sm underline text-muted-foreground">
-          Cancel
-        </Link>
       </div>
     </ActionForm>
   );

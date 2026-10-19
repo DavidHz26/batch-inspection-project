@@ -18,9 +18,9 @@ export function DefectPercentage({
   return (
     <abbr
       title={`Exact: ${exact}% (${units_defective}/${units_inspected}). Status uses the exact value.`}
-      className="underline decoration-dotted decoration-amber-600 underline-offset-2 cursor-help"
+      className="underline decoration-dotted decoration-warning underline-offset-2 cursor-help"
     >
-      {defect_percentage}%<span aria-hidden className="ml-0.5 text-amber-600">*</span>
+      {defect_percentage}%<span aria-hidden className="ml-0.5 text-warning">*</span>
     </abbr>
   );
 }

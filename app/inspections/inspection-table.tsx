@@ -51,7 +51,7 @@ export async function InspectionTable({ search_params }: {
             <option value="">All</option>
             {products.map((product) => (
               <option key={product.id} value={product.id}>
-                {product.sku} — {product.name}
+                {product.sku} - {product.name}
               </option>
             ))}
           </select>
@@ -75,14 +75,14 @@ export async function InspectionTable({ search_params }: {
         <PageSizeSelect page_size={page_size} />
 
         <div className="flex gap-2 items-center">
-          <button type="submit" className="px-3 py-1.5 border rounded bg-primary text-primary-foreground">
+          <button type="submit" className="px-4 py-1.5 rounded-full bg-primary text-primary-foreground">
             Filter
           </button>
 
           {has_filters && (
             <Link
               href="/inspections"
-              className="px-3 py-1.5 border rounded text-sm hover:bg-muted"
+              className="px-4 py-1.5 rounded-full border text-sm bg-surface-raised hover:bg-muted"
             >
               Clean
             </Link>
@@ -139,8 +139,8 @@ export async function InspectionTable({ search_params }: {
                     <td className="p-2">{inspection.inspection_date}</td>
                     <td className="p-2">
                       {inspection.products
-                        ? `${inspection.products.sku} — ${inspection.products.name}`
-                        : "—"}
+                        ? `${inspection.products.sku} - ${inspection.products.name}`
+                        : "-"}
                     </td>
                     <td className="p-2">{inspection.batch_number}</td>
                     <td className="p-2">{inspection.units_inspected}</td>
@@ -155,7 +155,7 @@ export async function InspectionTable({ search_params }: {
                     <td className="p-2">
                       <StatusBadge status={inspection.status} />
                     </td>
-                    <td className="p-2">{inspection.inspector_name ?? "—"}</td>
+                    <td className="p-2">{inspection.inspector_name ?? "-"}</td>
                   </ClickableRow>
                 );
               })}
