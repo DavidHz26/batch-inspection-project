@@ -1,19 +1,28 @@
 import Link from "next/link";
+import type { FormAction } from "@/lib/action-state";
+import { ActionForm } from "@/app/action-form";
 import type { Inspection, Product } from "@/lib/types";
+import { ConfirmSubmitButton } from "@/app/confirm-submit-button";
 
 export function InspectionForm({
   action,
   products,
   inspection,
-  submitLabel,
+  submit_label,
+  confirm_message,
+  confirm_submessage,
+  confirm_class_name,
 }: {
-  action: (formData: FormData) => Promise<void>;
+  action: FormAction;
   products: Product[];
   inspection?: Inspection;
-  submitLabel: string;
+  submit_label: string;
+  confirm_message: string;
+  confirm_submessage?: string;
+  confirm_class_name?: string;
 }) {
   return (
-    <form action={action} className="grid gap-4 max-w-lg">
+    <ActionForm action={action} className="grid gap-4 max-w-lg">
 
       <label className="grid gap-1">
         <span className="font-medium text-sm">Product *</span>
@@ -106,16 +115,18 @@ export function InspectionForm({
       </label>
 
       <div className="flex gap-3 items-center pt-2">
-        <button
-          type="submit"
-          className="bg-primary text-primary-foreground px-4 py-2 rounded font-medium hover:opacity-90"
+        <ConfirmSubmitButton
+          message={confirm_message}
+          submessage={confirm_submessage}
+          class_name="bg-primary text-primary-foreground px-4 py-2 rounded font-medium hover:opacity-90"
+          confirm_class_name={confirm_class_name}
         >
-          {submitLabel}
-        </button>
+          {submit_label}
+        </ConfirmSubmitButton>
         <Link href="/inspections" className="text-sm underline text-muted-foreground">
           Cancel
         </Link>
       </div>
-    </form>
+    </ActionForm>
   );
 }

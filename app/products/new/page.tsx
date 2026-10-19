@@ -1,13 +1,21 @@
 import { Suspense } from "react";
+import { Alert } from "@/app/alert";
+import { Loading } from "@/app/loading-text";
 import { getCurrentOrganizationId } from "@/lib/organization";
 import { createProduct } from "../actions";
 import { ProductForm } from "../product-form";
 
 export default function NewProductPage() {
   return (
-    <div className="space-y-4">
-      <h1 className="text-xl font-semibold">New Product</h1>
-      <Suspense fallback={null}>
+    <div className="max-w-xl space-y-8">
+      <div>
+        <h1 className="text-xl font-semibold">New Product</h1>
+        <p className="text-sm text-gray-500">
+          It will be added to the active organization.
+        </p>
+      </div>
+
+      <Suspense fallback={<Loading />}>
         <NewProduct />
       </Suspense>
     </div>
@@ -17,7 +25,17 @@ export default function NewProductPage() {
 async function NewProduct() {
   const organization_id = await getCurrentOrganizationId();
   if (!organization_id) {
-    return <p> Select an organization to create products. </p>;
+    return <Alert variant="warning">Select an organization to create products.</Alert>;
   }
-  return <ProductForm action={createProduct} submitLabel="Create" />;
+
+  return (
+    <div className="border rounded-lg p-4 sm:p-6 space-y-4 bg-background">
+      <ProductForm
+        action={createProduct}
+        submit_label="Create"
+        confirm_message="Create product?"
+        confirm_submessage="The product will be added to the active organization."
+      />
+    </div>
+  );
 }

@@ -9,23 +9,23 @@ const INSPECTION_SELECT = "*, products(sku, name)";
 export async function getInspections(
   filters: InspectionFilters = {},
   page: number = 1,
-  pageSize: number = 10
+  page_size: number = 10
 ): Promise<Paginated<Inspection>> {
-  const organizationId = await getCurrentOrganizationId();
-  if (!organizationId) return { data: [], count: 0 };
+  const organization_id = await getCurrentOrganizationId();
+  if (!organization_id) return { data: [], count: 0 };
 
-  const { from, to } = pageRange(page, pageSize);
+  const { from, to } = pageRange(page, page_size);
 
   let query = supabase
     .from("inspections")
     .select(INSPECTION_SELECT, { count: "exact" })
-    .eq("organization_id", organizationId)
+    .eq("organization_id", organization_id)
     .order("inspection_date", { ascending: false })
     .order("created_at", { ascending: false })
     .range(from, to);
 
-  if (filters.productId) {
-    query = query.eq("product_id", filters.productId);
+  if (filters.product_id) {
+    query = query.eq("product_id", filters.product_id);
   }
   if (filters.status) {
     query = query.eq("status", filters.status);
@@ -40,27 +40,27 @@ export async function getInspections(
 export async function getInspectionUnits(): Promise<
   Pick<Inspection, "units_inspected" | "units_defective">[]
 > {
-  const organizationId = await getCurrentOrganizationId();
-  if (!organizationId) return [];
+  const organization_id = await getCurrentOrganizationId();
+  if (!organization_id) return [];
 
   const { data, error } = await supabase
     .from("inspections")
     .select("units_inspected, units_defective")
-    .eq("organization_id", organizationId);
+    .eq("organization_id", organization_id);
 
   if (error) throw new Error(`Error while trying to get the insepections: ${error.message}`);
   return data || [];
 }
 
 export async function getInspection(id: string): Promise<Inspection | null> {
-  const organizationId = await getCurrentOrganizationId();
-  if (!organizationId) return null;
+  const organization_id = await getCurrentOrganizationId();
+  if (!organization_id) return null;
 
   const { data, error } = await supabase
     .from("inspections")
     .select(INSPECTION_SELECT)
     .eq("id", id)
-    .eq("organization_id", organizationId)
+    .eq("organization_id", organization_id)
     .maybeSingle();
 
   if (error) throw new Error(`Error while trying to get the inspection: ${error.message}`);
@@ -70,7 +70,7 @@ export async function getInspection(id: string): Promise<Inspection | null> {
 export async function insertInspection(
   input: InspectionInput
 ): Promise<Inspection> {
-  const organizationId = await requireOrganizationId();
+  const organization_id = await requireOrganizationId();
 
   const defect_percentage = calculateDefectPercentage(
     input.units_inspected,
@@ -83,7 +83,7 @@ export async function insertInspection(
     .from("inspections")
     .insert({
       ...input,
-      organization_id: organizationId,
+      organization_id: organization_id,
       defect_percentage,
       status,
     })
@@ -98,34 +98,34 @@ export async function updateInspection(
   id: string,
   input: Partial<InspectionInput>
 ): Promise<Inspection> {
-  const organizationId = await requireOrganizationId();
+  const organization_id = await requireOrganizationId();
 
-  let calculatedFields = {};
+  let calculated_fields = {};
 
-  const unitsInspected = input.units_inspected !== undefined ? Number(input.units_inspected) : undefined;
-  const unitsDefective = input.units_defective !== undefined ? Number(input.units_defective) : undefined;
+  const units_inspected = input.units_inspected !== undefined ? Number(input.units_inspected) : undefined;
+  const units_defective = input.units_defective !== undefined ? Number(input.units_defective) : undefined;
 
-  if (unitsInspected !== undefined && unitsDefective !== undefined && !isNaN(unitsInspected) && !isNaN(unitsDefective)) {
+  if (units_inspected !== undefined && units_defective !== undefined && !isNaN(units_inspected) && !isNaN(units_defective)) {
     const defect_percentage = calculateDefectPercentage(
-      unitsInspected,
-      unitsDefective
+      units_inspected,
+      units_defective
     );
     const status = getInspectionStatus(defect_percentage);
-    calculatedFields = { 
+    calculated_fields = { 
       ...input, 
-      units_inspected: unitsInspected, 
-      units_defective: unitsDefective,
+      units_inspected: units_inspected, 
+      units_defective: units_defective,
       defect_percentage, 
       status 
     };
   } else {
-    calculatedFields = { ...input };
+    calculated_fields = { ...input };
   }
 
   const { data, error } = await supabase
     .from("inspections")
-    .update(calculatedFields)
-    .eq("organization_id", organizationId)
+    .update(calculated_fields)
+    .eq("organization_id", organization_id)
     .eq("id", id)
     .select(INSPECTION_SELECT)
     .single();
@@ -135,11 +135,11 @@ export async function updateInspection(
 }
 
 export async function deleteInspection(id: string): Promise<void> {
-  const organizationId = await requireOrganizationId();
+  const organization_id = await requireOrganizationId();
   const { error } = await supabase
     .from("inspections")
     .delete()
-    .eq("organization_id", organizationId)
+    .eq("organization_id", organization_id)
     .eq("id", id);
 
   if (error) throw new Error(`Error while deleting inspection: ${error.message}`);

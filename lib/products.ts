@@ -6,9 +6,9 @@ import type { Product, ProductInput } from "./types";
 export async function getProductsPage(
   organization_id: string,
   page: number,
-  pageSize: number,
+  page_size: number,
 ): Promise<Paginated<Product>> {
-  const { from, to } = pageRange(page, pageSize);
+  const { from, to } = pageRange(page, page_size);
   const { data, error, count } = await supabase
     .from("products")
     .select("*", { count: "exact" })
@@ -43,10 +43,10 @@ export async function getProduct(organization_id: string, id: string): Promise<P
 }
 
 export async function insertProduct(input: ProductInput): Promise<Product> {
-  const organizationId = await requireOrganizationId();
+  const organization_id = await requireOrganizationId();
   const { data, error } = await supabase
     .from("products")
-    .insert({ ...input, organization_id: organizationId })
+    .insert({ ...input, organization_id: organization_id })
     .select()
     .single();
 
@@ -58,11 +58,11 @@ export async function updateProduct(
   id: string,
   input: Partial<ProductInput>
 ): Promise<Product> {
-  const organizationId = await requireOrganizationId();
+  const organization_id = await requireOrganizationId();
   const { data, error } = await supabase
     .from("products")
     .update(input)
-    .eq("organization_id", organizationId)
+    .eq("organization_id", organization_id)
     .eq("id", id)
     .select()
     .single();
@@ -72,11 +72,11 @@ export async function updateProduct(
 }
 
 export async function deleteProduct(id: string): Promise<void> {
-  const organizationId = await requireOrganizationId();
+  const organization_id = await requireOrganizationId();
   const { error } = await supabase
     .from("products")
     .delete()
-    .eq("organization_id", organizationId)
+    .eq("organization_id", organization_id)
     .eq("id", id);
 
   if (error) {

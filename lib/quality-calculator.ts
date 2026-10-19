@@ -8,28 +8,28 @@ export const INSPECTION_STATUSES: InspectionStatus[] = [
   "Rejected",
 ];
 
-export function calculateDefectPercentage(unitsInspected: number, unitsDefective: number): number {
-  if (!Number.isInteger(unitsInspected) || !Number.isInteger(unitsDefective)) {
+export function calculateDefectPercentage(units_inspected: number, units_defective: number): number {
+  if (!Number.isInteger(units_inspected) || !Number.isInteger(units_defective)) {
     throw new Error("Quantities must be integer numbers.");
   }
-  if (unitsInspected <= 0) {
+  if (units_inspected <= 0) {
     throw new Error("Inspected units must be greater than zero.");
   }
-  if (unitsDefective < 0) {
+  if (units_defective < 0) {
     throw new Error("Defective units cannot be negative.");
   }
-  if (unitsDefective > unitsInspected) {
+  if (units_defective > units_inspected) {
     throw new Error("Defective units cannot be greater than inspected units.");
   }
 
-  const percentage = (unitsDefective / unitsInspected) * 100;
+  const percentage = (units_defective / units_inspected) * 100;
   return Number(percentage.toFixed(2));
 }
 
-export function getInspectionStatus(defectPercentage: number): InspectionStatus {
-  if (defectPercentage <= APPROVED_MAX_PERCENTAGE) {
+export function getInspectionStatus(defect_percentage: number): InspectionStatus {
+  if (defect_percentage <= APPROVED_MAX_PERCENTAGE) {
     return "Approved";
-  } else if (defectPercentage <= OBSERVATIONS_MAX_PERCENTAGE) {
+  } else if (defect_percentage <= OBSERVATIONS_MAX_PERCENTAGE) {
     return "Observations";
   } else {
     return "Rejected";
@@ -39,34 +39,34 @@ export function getInspectionStatus(defectPercentage: number): InspectionStatus 
 export function calculateGlobalMetrics(
   inspections: Pick<Inspection, "units_inspected" | "units_defective">[],
 ): GlobalMetrics {
-  const totalInspections = inspections.length;
+  const total_inspections = inspections.length;
 
-  if (totalInspections === 0) {
+  if (total_inspections === 0) {
     return {
-      totalInspections: 0,
-      totalInspectedUnits: 0,
-      totalDefectiveUnits: 0,
-      globalDefectPercentage: 0,
+      total_inspections: 0,
+      total_inspected_units: 0,
+      total_defective_units: 0,
+      global_defect_percentage: 0,
     };
   }
 
-  let totalInspectedUnits = 0;
-  let totalDefectiveUnits = 0;
+  let total_inspected_units = 0;
+  let total_defective_units = 0;
 
   for (const inspection of inspections) {
-    totalInspectedUnits += inspection.units_inspected;
-    totalDefectiveUnits += inspection.units_defective;
+    total_inspected_units += inspection.units_inspected;
+    total_defective_units += inspection.units_defective;
   }
 
-  const globalDefectPercentage =
-    totalInspectedUnits > 0
-      ? Number(((totalDefectiveUnits / totalInspectedUnits) * 100).toFixed(2))
+  const global_defect_percentage =
+    total_inspected_units > 0
+      ? Number(((total_defective_units / total_inspected_units) * 100).toFixed(2))
       : 0;
 
   return {
-    totalInspections,
-    totalInspectedUnits,
-    totalDefectiveUnits,
-    globalDefectPercentage,
+    total_inspections,
+    total_inspected_units,
+    total_defective_units,
+    global_defect_percentage,
   };
 }

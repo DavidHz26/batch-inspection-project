@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { ClickableRow } from "@/app/clickable-row";
+import { Alert } from "@/app/alert";
 import { getInspections } from "@/lib/inspections";
 import { INSPECTION_STATUSES } from "@/lib/quality-calculator";
 import { parsePagination, type PaginationParams } from "@/lib/pagination";
@@ -7,38 +9,40 @@ import {
   PageSizeSelect,
   Pagination,
   ScrollTable,
-  scrollTableHeadClass,
+  SCROLL_TABLE_HEAD_CLASS,
 } from "@/app/pagination";
 import { getCurrentOrganizationId } from "@/lib/organization";
 import { getProducts } from "@/lib/products";
 
-export async function InspectionTable({ searchParams }: {
-  searchParams: Promise<{ productId?: string; status?: string } & PaginationParams>;
+export async function InspectionTable({ search_params }: {
+  search_params: Promise<{ product_id?: string; status?: string } & PaginationParams>;
 }) {
-  const resolvedParams = await searchParams;
+  const resolved_params = await search_params;
 
-  const productId = typeof resolvedParams?.productId === "string" ? resolvedParams.productId : undefined;
-  const status = typeof resolvedParams?.status === "string" ? resolvedParams.status : undefined;
-  const { page, pageSize } = parsePagination(resolvedParams);
+  const product_id = typeof resolved_params?.product_id === "string" ? resolved_params.product_id : undefined;
+  const status = typeof resolved_params?.status === "string" ? resolved_params.status : undefined;
+  const { page, page_size } = parsePagination(resolved_params);
 
-  const filters = { productId, status };
+  const filters = { product_id, status };
 
-  const organizationId = await getCurrentOrganizationId();
-  if (!organizationId) {
-    return <p> Select an organization to see its inspections. </p>;
+  const organization_id = await getCurrentOrganizationId();
+  if (!organization_id) {
+    return <Alert variant="warning">Select an organization to see its inspections.</Alert>;
   }
 
   const [products, { data: inspections, count }] = await Promise.all([
-    getProducts(organizationId),
-    getInspections(filters, page, pageSize),
+    getProducts(organization_id),
+    getInspections(filters, page, page_size),
   ]);
 
   return (
     <>
       <form className="flex flex-wrap gap-3 items-end text-sm mb-4">
-        <label className="grid gap-1">
+    
+        <label className="grid gap-1 w-full sm:w-auto">
           Product
-          <select name="productId" defaultValue={productId ?? ""}>
+
+          <select name="product_id" defaultValue={product_id ?? ""} className="w-full sm:max-w-xs">
             <option value="">All</option>
             {products.map((product) => (
               <option key={product.id} value={product.id}>
@@ -60,19 +64,42 @@ export async function InspectionTable({ searchParams }: {
           </select>
         </label>
 
-        <PageSizeSelect pageSize={pageSize} />
+        {product_id && <input type="hidden" name="current_product_id" value={product_id} />}
+        {status && <input type="hidden" name="current_status" value={status} />}
 
-        <button type="submit" className="px-3 py-1.5 border rounded bg-primary text-primary-foreground">
-          Filter
-        </button>
+        <PageSizeSelect page_size={page_size} />
+
+        <div className="flex gap-2 items-center">
+          <button type="submit" className="px-3 py-1.5 border rounded bg-primary text-primary-foreground">
+            Filter
+          </button>
+
+          {(product_id || status) && (
+            <Link
+              href="/inspections"
+              className="px-3 py-1.5 border rounded text-sm hover:bg-muted"
+            >
+              Clean
+            </Link>
+          )}
+        </div>
       </form>
 
       {inspections.length === 0 ? (
-        <p>No inspections registered.</p>
+        product_id || status ? (
+          <Alert variant="info" title="No results">
+            No inspections match the selected filters.{" "}
+            <Link href="/inspections" className="underline">
+              Clean filters
+            </Link>
+          </Alert>
+        ) : (
+          <Alert variant="info">No inspections registered.</Alert>
+        )
       ) : (
         <>
           <ScrollTable>
-            <thead className={scrollTableHeadClass}>
+            <thead className={SCROLL_TABLE_HEAD_CLASS}>
               <tr className="border-b">
                 <th className="w-12 p-2 text-left">#</th>
                 <th className="p-2 text-left">Date</th>
@@ -83,16 +110,20 @@ export async function InspectionTable({ searchParams }: {
                 <th className="p-2 text-left">% Defects</th>
                 <th className="p-2 text-left">Status</th>
                 <th className="p-2 text-left">Inspector</th>
-                <th className="p-2 text-right"></th>
               </tr>
             </thead>
             <tbody>
               {inspections.map((inspection, index) => {
-                const rowNumber = (page - 1) * pageSize + index + 1;
+                const row_number = (page - 1) * page_size + index + 1;
 
                 return (
-                  <tr key={inspection.id} className="border-b hover:bg-muted/50">
-                    <td className="p-2 text-muted-foreground font-mono">{rowNumber}</td>
+                  <ClickableRow
+                    key={inspection.id}
+                    href={`/inspections/${inspection.id}/edit`}
+                    label={`Edit inspection of batch ${inspection.batch_number}`}
+                    class_name="border-b"
+                  >
+                    <td className="p-2 text-muted-foreground font-mono">{row_number}</td>
                     <td className="p-2">{inspection.inspection_date}</td>
                     <td className="p-2">
                       {inspection.products
@@ -107,26 +138,18 @@ export async function InspectionTable({ searchParams }: {
                       <StatusBadge status={inspection.status} />
                     </td>
                     <td className="p-2">{inspection.inspector_name ?? "—"}</td>
-                    <td className="p-2 text-right">
-                      <Link
-                        href={`/inspections/${inspection.id}/edit`}
-                        className="underline text-sm"
-                      >
-                        Edit
-                      </Link>
-                    </td>
-                  </tr>
+                  </ClickableRow>
                 );
               })}
             </tbody>
           </ScrollTable>
 
           <Pagination
-            basePath="/inspections"
+            base_path="/inspections"
             page={page}
-            pageSize={pageSize}
+            page_size={page_size}
             count={count}
-            params={{ productId, status }}
+            params={{ product_id, status }}
           />
         </>
       )}

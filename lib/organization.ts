@@ -7,9 +7,9 @@ export const ORGANIZATION_COOKIE = "organization_id";
 
 export async function getOrganizationsPage(
   page: number,
-  pageSize: number,
+  page_size: number,
 ): Promise<Paginated<Organization>> {
-  const { from, to } = pageRange(page, pageSize);
+  const { from, to } = pageRange(page, page_size);
   const { data, error, count } = await supabase
     .from("organizations")
     .select("*", { count: "exact" })
@@ -42,8 +42,8 @@ export async function getOrganization(id: string): Promise<Organization | null> 
 }
 
 export async function getCurrentOrganizationId(): Promise<string | null> {
-  const cookieStore = await cookies();
-  const selected = cookieStore.get(ORGANIZATION_COOKIE)?.value;
+  const cookie_store = await cookies();
+  const selected = cookie_store.get(ORGANIZATION_COOKIE)?.value;
   const organizations = await getOrganizations();
   
   if (organizations.length === 0) return null;
@@ -72,14 +72,14 @@ export async function updateOrganization(
   id: string,
   input: Partial<OrganizationInput>
 ): Promise<Organization> {
-  const updateData: Partial<OrganizationInput> = { ...input };
-  if (updateData.name && !updateData.slug) {
-    updateData.slug = updateData.name.toLowerCase().replace(/\s+/g, "-");
+  const update_data: Partial<OrganizationInput> = { ...input };
+  if (update_data.name && !update_data.slug) {
+    update_data.slug = update_data.name.toLowerCase().replace(/\s+/g, "-");
   }
 
   const { data, error } = await supabase
     .from("organizations")
-    .update(updateData)
+    .update(update_data)
     .eq("id", id)
     .select()
     .single();

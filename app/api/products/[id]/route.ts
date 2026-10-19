@@ -10,13 +10,12 @@ function notFound() {
   return Response.json({ error: "Product not found" }, { status: 404 });
 }
 
-// Devuelve el producto si pertenece a la organización activa, o la respuesta de error.
 async function findProduct(ctx: Context) {
-  const organizationId = await getCurrentOrganizationId();
-  if (!organizationId) return { error: noOrganization() };
+  const organization_id = await getCurrentOrganizationId();
+  if (!organization_id) return { error: noOrganization() };
 
   const { id } = await ctx.params;
-  const product = await getProduct(organizationId, id);
+  const product = await getProduct(organization_id, id);
   return product ? { product } : { error: notFound() };
 }
 
@@ -32,9 +31,8 @@ export async function PUT(request: NextRequest, ctx: Context) {
   if (error) return error;
 
   try {
-    // En la API, si no se envía is_active se conserva el valor actual.
     const input = parseProduct(await readJson(request), {
-      isActiveDefault: product.is_active,
+      is_active_default: product.is_active,
     });
     return Response.json(await updateProduct(product.id, input));
   } catch (error) {

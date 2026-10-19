@@ -1,17 +1,26 @@
 import Link from "next/link";
+import type { FormAction } from "@/lib/action-state";
+import { ActionForm } from "@/app/action-form";
 import type { Product } from "@/lib/types";
+import { ConfirmSubmitButton } from "@/app/confirm-submit-button";
 
 export function ProductForm({
   action,
   product,
-  submitLabel,
+  submit_label,
+  confirm_message,
+  confirm_submessage,
+  confirm_class_name,
 }: {
-  action: (formData: FormData) => Promise<void>;
+  action: FormAction;
   product?: Product;
-  submitLabel: string;
+  submit_label: string;
+  confirm_message: string;
+  confirm_submessage?: string;
+  confirm_class_name?: string;
 }) {
   return (
-    <form action={action} className="grid gap-3 max-w-sm">
+    <ActionForm action={action} className="grid gap-3 max-w-sm">
       <label className="grid gap-1">
         SKU
         <input
@@ -34,11 +43,18 @@ export function ProductForm({
         Active
       </label>
       <div className="flex gap-3 items-center">
-        <button type="submit">{submitLabel}</button>
+        <ConfirmSubmitButton
+          message={confirm_message}
+          submessage={confirm_submessage}
+          class_name="px-3.5 py-1.5 rounded text-sm bg-primary text-primary-foreground"
+          confirm_class_name={confirm_class_name}
+        >
+          {submit_label}
+        </ConfirmSubmitButton>
         <Link href="/products" className="text-sm underline">
           Cancel
         </Link>
       </div>
-    </form>
+    </ActionForm>
   );
 }

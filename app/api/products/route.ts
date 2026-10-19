@@ -5,10 +5,10 @@ import { handleApiError, noOrganization, readJson } from "@/app/api/utils";
 
 // GET /api/products
 export async function GET() {
-  const organizationId = await getCurrentOrganizationId();
-  if (!organizationId) return noOrganization();
+  const organization_id = await getCurrentOrganizationId();
+  if (!organization_id) return noOrganization();
 
-  return Response.json(await getProducts(organizationId));
+  return Response.json(await getProducts(organization_id));
 }
 
 // POST /api/products

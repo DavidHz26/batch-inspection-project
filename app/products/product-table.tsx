@@ -1,4 +1,5 @@
-import Link from "next/link";
+import { ClickableRow } from "@/app/clickable-row";
+import { Alert } from "@/app/alert";
 import { getCurrentOrganizationId } from "@/lib/organization";
 import { getProductsPage } from "@/lib/products";
 import { parsePagination, type PaginationParams } from "@/lib/pagination";
@@ -6,52 +7,56 @@ import {
   PageSizeForm,
   Pagination,
   ScrollTable,
-  scrollTableHeadClass,
+  SCROLL_TABLE_HEAD_CLASS,
 } from "@/app/pagination";
 
-export async function ProductTable({ searchParams }: {
-  searchParams: Promise<PaginationParams>;
+export async function ProductTable({ search_params }: {
+  search_params: Promise<PaginationParams>;
 }) {
-  const resolvedParams = await searchParams;
-  const { page, pageSize } = parsePagination(resolvedParams);
+  const resolved_params = await search_params;
+  const { page, page_size } = parsePagination(resolved_params);
 
-  const organizationId = await getCurrentOrganizationId();
-  if (!organizationId) {
-    return <p>Select an organization to see its products.</p>;
+  const organization_id = await getCurrentOrganizationId();
+  if (!organization_id) {
+    return <Alert variant="warning">Select an organization to see its products.</Alert>;
   }
 
   const { data: products, count } = await getProductsPage(
-    organizationId,
+    organization_id,
     page,
-    pageSize,
+    page_size,
   );
 
   return (
     <>
-      <PageSizeForm pageSize={pageSize} />
+      <PageSizeForm page_size={page_size} />
 
       {products.length === 0 ? (
-        <p>No products registered.</p>
+        <Alert variant="info">No products registered.</Alert>
       ) : (
         <>
           <ScrollTable>
-            <thead className={scrollTableHeadClass}>
+            <thead className={SCROLL_TABLE_HEAD_CLASS}>
               <tr className="border-b">
                 <th className="w-12 p-2 text-left">#</th>
                 <th className="p-2 text-left">SKU</th>
                 <th className="p-2 text-left">Name</th>
                 <th className="p-2 text-left">Status</th>
                 <th className="p-2 text-left">Created At</th>
-                <th className="p-2 text-right"></th>
               </tr>
             </thead>
             <tbody>
               {products.map((product, index) => {
-                const rowNumber = (page - 1) * pageSize + index + 1;
+                const row_number = (page - 1) * page_size + index + 1;
 
                 return (
-                  <tr key={product.id} className="border-b hover:bg-muted/50">
-                    <td className="p-2 text-muted-foreground font-mono">{rowNumber}</td>
+                  <ClickableRow
+                    key={product.id}
+                    href={`/products/${product.id}/edit`}
+                    label={`Edit ${product.name}`}
+                    class_name="border-b"
+                  >
+                    <td className="p-2 text-muted-foreground font-mono">{row_number}</td>
                     <td className="p-2 font-mono text-xs">{product.sku}</td>
                     <td className="p-2">{product.name}</td>
                     <td className="p-2">
@@ -68,24 +73,16 @@ export async function ProductTable({ searchParams }: {
                     <td className="p-2">
                       {new Date(product.created_at).toLocaleDateString()}
                     </td>
-                    <td className="p-2 text-right">
-                      <Link
-                        href={`/products/${product.id}/edit`}
-                        className="underline text-sm"
-                      >
-                        Edit
-                      </Link>
-                    </td>
-                  </tr>
+                  </ClickableRow>
                 );
               })}
             </tbody>
           </ScrollTable>
 
           <Pagination
-            basePath="/products"
+            base_path="/products"
             page={page}
-            pageSize={pageSize}
+            page_size={page_size}
             count={count}
           />
         </>

@@ -2,7 +2,6 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { PAGE_SIZES } from "@/lib/pagination";
 
-// Parámetros de la URL que deben conservarse al paginar (p. ej. filtros).
 type QueryParams = Record<string, string | undefined>;
 
 function HiddenParams({ params }: { params: QueryParams }) {
@@ -11,12 +10,11 @@ function HiddenParams({ params }: { params: QueryParams }) {
   );
 }
 
-// Selector de filas por página para usar dentro de un formulario GET existente.
-export function PageSizeSelect({ pageSize }: { pageSize: number }) {
+export function PageSizeSelect({ page_size }: { page_size: number }) {
   return (
     <label className="grid gap-1">
       Rows per page
-      <select name="pageSize" defaultValue={pageSize.toString()}>
+      <select name="page_size" defaultValue={page_size.toString()}>
         {PAGE_SIZES.map((size) => (
           <option key={size} value={size}>
             {size}
@@ -27,18 +25,17 @@ export function PageSizeSelect({ pageSize }: { pageSize: number }) {
   );
 }
 
-// Formulario propio con el selector, para listados sin formulario de filtros.
 export function PageSizeForm({
-  pageSize,
+  page_size,
   params = {},
 }: {
-  pageSize: number;
+  page_size: number;
   params?: QueryParams;
 }) {
   return (
     <form className="flex flex-wrap gap-3 items-end text-sm mb-4">
       <HiddenParams params={params} />
-      <PageSizeSelect pageSize={pageSize} />
+      <PageSizeSelect page_size={page_size} />
       <button
         type="submit"
         className="px-3 py-1.5 border rounded bg-primary text-primary-foreground"
@@ -49,47 +46,45 @@ export function PageSizeForm({
   );
 }
 
-// Contenedor con scroll vertical y cabecera fija para las tablas paginadas.
 export function ScrollTable({ children }: { children: ReactNode }) {
   return (
-    <div className="h-[500px] overflow-y-auto border rounded-md">
-      <table className="w-full border-collapse">{children}</table>
+    <div className="max-h-[60vh] sm:max-h-[500px] overflow-auto border rounded-md">
+      <table className="w-full min-w-max border-collapse [&_td]:whitespace-nowrap [&_th]:whitespace-nowrap">{children}</table>
     </div>
   );
 }
 
-export const scrollTableHeadClass = "sticky top-0 bg-background shadow-sm z-10";
+export const SCROLL_TABLE_HEAD_CLASS = "sticky top-0 bg-background shadow-sm z-10";
 
-// Barra inferior: total, salto directo de página y botones anterior/siguiente.
 export function Pagination({
-  basePath,
+  base_path,
   page,
-  pageSize,
+  page_size,
   count,
   params = {},
 }: {
-  basePath: string;
+  base_path: string;
   page: number;
-  pageSize: number;
+  page_size: number;
   count: number;
   params?: QueryParams;
 }) {
-  const totalPages = Math.max(1, Math.ceil(count / pageSize));
-  const currentPage = Math.min(page, totalPages);
+  const total_pages = Math.max(1, Math.ceil(count / page_size));
+  const current_page = Math.min(page, total_pages);
 
-  const pageUrl = (targetPage: number) => {
+  const pageUrl = (target_page: number) => {
     const search = new URLSearchParams();
     for (const [name, value] of Object.entries(params)) {
       if (value) search.set(name, value);
     }
-    search.set("page", targetPage.toString());
-    search.set("pageSize", pageSize.toString());
-    return `${basePath}?${search.toString()}`;
+    search.set("page", target_page.toString());
+    search.set("page_size", page_size.toString());
+    return `${base_path}?${search.toString()}`;
   };
 
-  const navButton = (label: string, targetPage: number, enabled: boolean) =>
+  const navButton = (label: string, target_page: number, enabled: boolean) =>
     enabled ? (
-      <Link href={pageUrl(targetPage)} className="px-3 py-1 border rounded">
+      <Link href={pageUrl(target_page)} className="px-3 py-1 border rounded">
         {label}
       </Link>
     ) : (
@@ -101,28 +96,27 @@ export function Pagination({
   return (
     <div className="flex flex-wrap justify-between items-center mt-4 text-sm gap-4">
       <span>
-        Page {currentPage} of {totalPages} (Total: {count} records)
+        Page {current_page} of {total_pages} (Total: {count} records)
       </span>
 
-      <div className="flex items-center gap-4">
-        {/* Salto directo de página mediante un formulario nativo GET */}
+      <div className="flex flex-wrap items-center gap-4">
         <form method="GET" className="flex items-center gap-1">
           <HiddenParams params={params} />
-          <input type="hidden" name="pageSize" value={pageSize} />
+          <input type="hidden" name="page_size" value={page_size} />
           <span>Go to:</span>
           <input
             type="number"
             name="page"
             min={1}
-            max={totalPages}
-            defaultValue={currentPage}
+            max={total_pages}
+            defaultValue={current_page}
             className="w-16 px-2 py-1 border rounded text-center"
           />
         </form>
 
         <div className="flex gap-2">
-          {navButton("Previous", currentPage - 1, currentPage > 1)}
-          {navButton("Next", currentPage + 1, currentPage < totalPages)}
+          {navButton("Previous", current_page - 1, current_page > 1)}
+          {navButton("Next", current_page + 1, current_page < total_pages)}
         </div>
       </div>
     </div>
