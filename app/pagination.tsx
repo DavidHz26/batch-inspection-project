@@ -13,7 +13,7 @@ function HiddenParams({ params }: { params: QueryParams }) {
 export function PageSizeSelect({ page_size }: { page_size: number }) {
   return (
     <label className="grid gap-1">
-      Rows per page
+      Show items
       <select name="page_size" defaultValue={page_size.toString()}>
         {PAGE_SIZES.map((size) => (
           <option key={size} value={size}>

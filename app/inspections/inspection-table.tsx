@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { ClickableRow } from "@/app/clickable-row";
 import { Alert } from "@/app/alert";
-import { getInspections } from "@/lib/inspections";
-import { INSPECTION_STATUSES } from "@/lib/quality-calculator";
+import { getInspections, getInspectionUnits } from "@/lib/inspections";
+import { calculateGlobalMetrics, INSPECTION_STATUSES } from "@/lib/quality-calculator";
+import { MetricsCards } from "@/app/metrics-cards";
 import { parsePagination, type PaginationParams } from "@/lib/pagination";
 import { StatusBadge } from "@/app/status-badge";
 import {
@@ -30,10 +31,13 @@ export async function InspectionTable({ search_params }: {
     return <Alert variant="warning">Select an organization to see its inspections.</Alert>;
   }
 
-  const [products, { data: inspections, count }] = await Promise.all([
+  const [products, { data: inspections, count }, filtered_units] = await Promise.all([
     getProducts(organization_id),
     getInspections(filters, page, page_size),
+    getInspectionUnits(filters),
   ]);
+  const metrics = calculateGlobalMetrics(filtered_units);
+  const has_filters = Boolean(product_id || status);
 
   return (
     <>
@@ -74,7 +78,7 @@ export async function InspectionTable({ search_params }: {
             Filter
           </button>
 
-          {(product_id || status) && (
+          {has_filters && (
             <Link
               href="/inspections"
               className="px-3 py-1.5 border rounded text-sm hover:bg-muted"
@@ -85,8 +89,15 @@ export async function InspectionTable({ search_params }: {
         </div>
       </form>
 
+      <div className="mb-4">
+        <MetricsCards
+          metrics={metrics}
+          title={has_filters ? "Filtered results" : "All inspections"}
+        />
+      </div>
+
       {inspections.length === 0 ? (
-        product_id || status ? (
+        has_filters ? (
           <Alert variant="info" title="No results">
             No inspections match the selected filters.{" "}
             <Link href="/inspections" className="underline">

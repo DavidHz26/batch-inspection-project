@@ -6,6 +6,13 @@ import type { Inspection, InspectionInput, InspectionFilters } from "./types";
 
 const INSPECTION_SELECT = "*, products(sku, name)";
 
+function filterConditions(filters: InspectionFilters): [column: string, value: string][] {
+  const conditions: [string, string][] = [];
+  if (filters.product_id) conditions.push(["product_id", filters.product_id]);
+  if (filters.status) conditions.push(["status", filters.status]);
+  return conditions;
+}
+
 export async function getInspections(
   filters: InspectionFilters = {},
   page: number = 1,
@@ -19,34 +26,35 @@ export async function getInspections(
   let query = supabase
     .from("inspections")
     .select(INSPECTION_SELECT, { count: "exact" })
-    .eq("organization_id", organization_id)
+    .eq("organization_id", organization_id);
+  for (const [column, value] of filterConditions(filters)) {
+    query = query.eq(column, value);
+  }
+
+  const { data, error, count } = await query
     .order("inspection_date", { ascending: false })
     .order("created_at", { ascending: false })
     .range(from, to);
 
-  if (filters.product_id) {
-    query = query.eq("product_id", filters.product_id);
-  }
-  if (filters.status) {
-    query = query.eq("status", filters.status);
-  }
-
-  const { data, error, count } = await query;
-
-  if (error) throw new Error(`Error while trying to get the organizations: ${error.message}`);
+  if (error) throw new Error(`Error while trying to get the inspections: ${error.message}`);
   return { data: data || [], count: count || 0 };
 }
 
-export async function getInspectionUnits(): Promise<
-  Pick<Inspection, "units_inspected" | "units_defective">[]
-> {
+export async function getInspectionUnits(
+  filters: InspectionFilters = {},
+): Promise<Pick<Inspection, "units_inspected" | "units_defective">[]> {
   const organization_id = await getCurrentOrganizationId();
   if (!organization_id) return [];
 
-  const { data, error } = await supabase
+  let query = supabase
     .from("inspections")
     .select("units_inspected, units_defective")
     .eq("organization_id", organization_id);
+  for (const [column, value] of filterConditions(filters)) {
+    query = query.eq(column, value);
+  }
+
+  const { data, error } = await query;
 
   if (error) throw new Error(`Error while trying to get the insepections: ${error.message}`);
   return data || [];
