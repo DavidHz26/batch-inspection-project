@@ -35,7 +35,7 @@ export function RecentInspectionsList({ inspections }: { inspections: Inspection
         </div>
       </div>
       <div className="pt-4 text-xs text-muted-foreground text-right">
-        Mostrando las inspecciones recientes
+        Showing recent inspections
       </div>
     </div>
   );

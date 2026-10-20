@@ -88,4 +88,25 @@ describe("server tables", () => {
     expect(screen.getAllByText("P001 - Widget").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Approved").length).toBeGreaterThan(0);
   });
+
+  it("syncs the filter selects with the URL when the page is reused", async () => {
+    (getCurrentOrganizationId as jest.Mock).mockResolvedValue("org-1");
+    (getProducts as jest.Mock).mockResolvedValue([product]);
+    (getInspections as jest.Mock).mockResolvedValue({ data: [inspection], count: 1 });
+    (getInspectionUnits as jest.Mock).mockResolvedValue([inspection]);
+
+    const { rerender } = render(
+      await InspectionTable({
+        search_params: Promise.resolve({ product_id: "prod-1", status: "Rejected", page_size: "20" }),
+      }),
+    );
+    expect(screen.getByRole("combobox", { name: "Product" })).toHaveValue("prod-1");
+    expect(screen.getByRole("combobox", { name: "Status" })).toHaveValue("Rejected");
+    expect(screen.getByRole("combobox", { name: "Items" })).toHaveValue("20");
+
+    rerender(await InspectionTable({ search_params: Promise.resolve({}) }));
+    expect(screen.getByRole("combobox", { name: "Product" })).toHaveValue("");
+    expect(screen.getByRole("combobox", { name: "Status" })).toHaveValue("");
+    expect(screen.getByRole("combobox", { name: "Items" })).toHaveValue("10");
+  });
 });

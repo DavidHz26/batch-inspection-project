@@ -1,7 +1,7 @@
 import { supabase } from "./supabase";
 import { classifyInspection } from "./quality-calculator";
 
-// Peligroso al manipular los datos, solo están disponibles si el servidor lo habilita con DEMO_RESET_ENABLED=true
+// Peligroso al manipular los datos, solo están disponibles si el servidor lo habilita con DEMO_DATA_ENABLED=true
 export function isDemoDataEnabled(): boolean {
   return process.env.DEMO_DATA_ENABLED === "true";
 }
@@ -14,18 +14,17 @@ const DEMO_INSPECTIONS: {
   units_defective: number;
   inspector_name: string;
 }[] = [
-  { sku: "P001", batch_number: "L-2026-101", days_ago: 0, units_inspected: 20, units_defective: 1, inspector_name: "Ana Gómez" },
-  { sku: "P002", batch_number: "L-2026-102", days_ago: 0, units_inspected: 19, units_defective: 1, inspector_name: "Carlos Pérez" },
-  { sku: "P003", batch_number: "L-2026-103", days_ago: 1, units_inspected: 10, units_defective: 1, inspector_name: "María López" },
-  { sku: "P004", batch_number: "L-2026-104", days_ago: 1, units_inspected: 9, units_defective: 1, inspector_name: "Ana Gómez" },
-  { sku: "P005", batch_number: "L-2026-105", days_ago: 2, units_inspected: 100, units_defective: 0, inspector_name: "Luis Martínez" },
-  { sku: "P001", batch_number: "L-2026-106", days_ago: 2, units_inspected: 10, units_defective: 2, inspector_name: "Carlos Pérez" },
-  { sku: "P002", batch_number: "L-2026-107", days_ago: 3, units_inspected: 250, units_defective: 3, inspector_name: "María López" },
-  { sku: "P003", batch_number: "L-2026-108", days_ago: 4, units_inspected: 120, units_defective: 8, inspector_name: "Luis Martínez" },
-  { sku: "P004", batch_number: "L-2026-109", days_ago: 5, units_inspected: 500, units_defective: 12, inspector_name: "Ana Gómez" },
-  { sku: "P005", batch_number: "L-2026-110", days_ago: 6, units_inspected: 80, units_defective: 9, inspector_name: "Carlos Pérez" },
-  { sku: "P001", batch_number: "L-2026-111", days_ago: 7, units_inspected: 300, units_defective: 31, inspector_name: "María López" },
-  { sku: "P002", batch_number: "L-2026-112", days_ago: 8, units_inspected: 150, units_defective: 4, inspector_name: "Luis Martínez" },
+  // Casos obligatorios del requerimiento (revisadas/defectuosas)
+  { sku: "P001", batch_number: "L-2026-101", days_ago: 0, units_inspected: 20, units_defective: 1, inspector_name: "Ana Gómez" }, // 5% -> Approved
+  { sku: "P002", batch_number: "L-2026-102", days_ago: 0, units_inspected: 19, units_defective: 1, inspector_name: "Carlos Pérez" }, // 5.26% -> Observations
+  { sku: "P003", batch_number: "L-2026-103", days_ago: 1, units_inspected: 10, units_defective: 1, inspector_name: "María López" }, // 10% -> Observations
+  { sku: "P004", batch_number: "L-2026-104", days_ago: 1, units_inspected: 9, units_defective: 1, inspector_name: "Ana Gómez" }, // 11.11% -> Rejected
+  // Caso global: 100/0 + 10/2 = 2/110 = 1.82% (promediar daría 10%)
+  // Ambas en P005 para que al filtrar por ese producto las tarjetas muestren exactamente este caso
+  { sku: "P005", batch_number: "L-2026-105", days_ago: 2, units_inspected: 100, units_defective: 0, inspector_name: "Luis Martínez" }, // 0% -> Approved
+  { sku: "P005", batch_number: "L-2026-106", days_ago: 2, units_inspected: 10, units_defective: 2, inspector_name: "Carlos Pérez" }, // 20% -> Rejected
+  // Redondeo engañoso: 250/4999 = 5.001% se guarda y muestra como 5%, pero se clasifica con el valor exacto
+  { sku: "P002", batch_number: "L-2026-107", days_ago: 3, units_inspected: 4999, units_defective: 250, inspector_name: "María López" }, // 5.001% -> Observations
 ];
 
 function localDate(days_ago: number): string {
@@ -77,11 +76,10 @@ export async function loadDemoData(organization_id: string): Promise<number> {
   return insertMissingSampleInspections(organization_id);
 }
 
-// Borra todos los productos e inspecciones y deja la demo data (por organizacion)
+// Borra todos los productos e inspecciones de la organización y la deja vacía
 export async function resetOrganizationData(organization_id: string): Promise<void> {
   const { error } = await supabase.rpc("reset_organization_data", {
     target_organization_id: organization_id,
   });
   if (error) throw new Error(`Could not reset the organization data: ${error.message}`);
-  await insertMissingSampleInspections(organization_id);
 }
