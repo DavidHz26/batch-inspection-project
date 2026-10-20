@@ -77,11 +77,10 @@ export async function loadDemoData(organization_id: string): Promise<number> {
   return insertMissingSampleInspections(organization_id);
 }
 
-// Borra todos los productos e inspecciones y deja la demo data (por organizacion)
+// Borra todos los productos e inspecciones de la organización y la deja vacía
 export async function resetOrganizationData(organization_id: string): Promise<void> {
   const { error } = await supabase.rpc("reset_organization_data", {
     target_organization_id: organization_id,
   });
   if (error) throw new Error(`Could not reset the organization data: ${error.message}`);
-  await insertMissingSampleInspections(organization_id);
 }
