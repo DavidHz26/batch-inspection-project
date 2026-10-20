@@ -46,3 +46,5 @@ export function createSupabaseMock(initial?: Partial<QueryResult>) {
     result,
   };
 }
+
+export type MockSupabase = ReturnType<typeof createSupabaseMock>;

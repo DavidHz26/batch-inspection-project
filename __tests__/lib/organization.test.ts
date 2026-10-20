@@ -13,6 +13,7 @@ jest.mock("next/headers", () => ({
   cookies: jest.fn(async () => ({ get: cookieGet })),
 }));
 
+import { type MockSupabase } from "../helpers/supabase-mock";
 import { supabase } from "@/lib/supabase";
 import {
   deleteOrganization,
@@ -25,9 +26,7 @@ import {
   updateOrganization,
 } from "@/lib/organization";
 
-const mock = supabase as unknown as ReturnType<
-  typeof import("../helpers/supabase-mock").createSupabaseMock
->;
+const mock = supabase as unknown as MockSupabase;
 
 describe("organization data layer", () => {
   beforeEach(() => {

@@ -53,4 +53,37 @@ describe("ClickableRow", () => {
     expect(window.open).toHaveBeenCalledWith("/products/1/edit", "_blank", "noopener");
     expect(push).not.toHaveBeenCalled();
   });
+
+  it("opens a new tab on middle click", () => {
+    render(
+      <table>
+        <tbody>
+          <ClickableRow href="/products/1/edit" label="Edit Widget">
+            <td>Widget</td>
+          </ClickableRow>
+        </tbody>
+      </table>,
+    );
+
+    fireEvent(
+      screen.getByRole("link", { name: "Edit Widget" }),
+      new MouseEvent("auxclick", { bubbles: true, cancelable: true, button: 1 }),
+    );
+    expect(window.open).toHaveBeenCalledWith("/products/1/edit", "_blank", "noopener");
+  });
+
+  it("prefetches the target route on mouse enter", () => {
+    render(
+      <table>
+        <tbody>
+          <ClickableRow href="/products/1/edit" label="Edit Widget">
+            <td>Widget</td>
+          </ClickableRow>
+        </tbody>
+      </table>,
+    );
+
+    fireEvent.mouseEnter(screen.getByRole("link", { name: "Edit Widget" }));
+    expect(prefetch).toHaveBeenCalledWith("/products/1/edit");
+  });
 });

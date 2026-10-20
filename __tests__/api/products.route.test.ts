@@ -1,6 +1,7 @@
 /**
  * @jest-environment node
  */
+import { emptyRequest, jsonRequest, routeContext } from "../helpers/api";
 import { product } from "../helpers/fixtures";
 
 jest.mock("@/lib/organization", () => ({
@@ -26,7 +27,7 @@ import {
 import { GET as listGet, POST as listPost } from "@/app/api/products/route";
 import { DELETE, GET, PUT } from "@/app/api/products/[id]/route";
 
-const ctx = { params: Promise.resolve({ id: "prod-1" }) };
+const ctx = routeContext("prod-1");
 
 describe("products API", () => {
   beforeEach(() => {
@@ -49,17 +50,14 @@ describe("products API", () => {
   it("creates a product", async () => {
     (insertProduct as jest.Mock).mockResolvedValue(product);
     const response = await listPost(
-      new Request("http://localhost", {
-        method: "POST",
-        body: JSON.stringify({ sku: "P001", name: "Widget" }),
-      }),
+      jsonRequest("POST", { sku: "P001", name: "Widget" }),
     );
     expect(response.status).toBe(201);
   });
 
   it("returns 404 when the product is missing", async () => {
     (getProduct as jest.Mock).mockResolvedValue(null);
-    const response = await GET({} as never, ctx as never);
+    const response = await GET(emptyRequest, ctx);
     expect(response.status).toBe(404);
   });
 
@@ -69,15 +67,12 @@ describe("products API", () => {
     (deleteProduct as jest.Mock).mockResolvedValue(undefined);
 
     const updated = await PUT(
-      new Request("http://localhost", {
-        method: "PUT",
-        body: JSON.stringify({ sku: "P001", name: "Updated" }),
-      }) as never,
-      ctx as never,
+      jsonRequest("PUT", { sku: "P001", name: "Updated" }),
+      ctx,
     );
     expect(updated.status).toBe(200);
 
-    const deleted = await DELETE({} as never, ctx as never);
+    const deleted = await DELETE(emptyRequest, ctx);
     expect(deleted.status).toBe(204);
   });
 });
@@ -95,10 +90,6 @@ describe("products API error handling", () => {
     console_error.mockRestore();
   });
 
-  function jsonRequest(method: string, body: unknown) {
-    return new Request("http://localhost", { method, body: JSON.stringify(body) });
-  }
-
   it("rejects creating a product without an organization", async () => {
     (getCurrentOrganizationId as jest.Mock).mockResolvedValue(null);
     const response = await listPost(jsonRequest("POST", { sku: "P001", name: "Widget" }));
@@ -108,7 +99,7 @@ describe("products API error handling", () => {
 
   it("returns 400 for a body that is not JSON", async () => {
     const response = await listPost(
-      new Request("http://localhost", { method: "POST", body: "not json" }),
+      jsonRequest("POST", "not json"),
     );
     expect(response.status).toBe(400);
     await expect(response.json()).resolves.toEqual({
@@ -131,14 +122,14 @@ describe("products API error handling", () => {
 
   it("returns 400 on single product routes without an organization", async () => {
     (getCurrentOrganizationId as jest.Mock).mockResolvedValue(null);
-    const response = await GET({} as never, ctx as never);
+    const response = await GET(emptyRequest, ctx);
     expect(response.status).toBe(400);
     expect(getProduct).not.toHaveBeenCalled();
   });
 
   it("looks up the product inside the current organization", async () => {
     (getProduct as jest.Mock).mockResolvedValue(product);
-    const response = await GET({} as never, ctx as never);
+    const response = await GET(emptyRequest, ctx);
     expect(response.status).toBe(200);
     expect(getProduct).toHaveBeenCalledWith("org-1", "prod-1");
   });
@@ -146,7 +137,7 @@ describe("products API error handling", () => {
   it("keeps the current active flag when the update omits it", async () => {
     (getProduct as jest.Mock).mockResolvedValue({ ...product, is_active: false });
     (updateProduct as jest.Mock).mockResolvedValue(product);
-    await PUT(jsonRequest("PUT", { sku: "P001", name: "Widget" }) as never, ctx as never);
+    await PUT(jsonRequest("PUT", { sku: "P001", name: "Widget" }), ctx);
     expect(updateProduct).toHaveBeenCalledWith("prod-1", {
       sku: "P001",
       name: "Widget",
@@ -156,8 +147,8 @@ describe("products API error handling", () => {
 
   it("returns 404 before updating or deleting a missing product", async () => {
     (getProduct as jest.Mock).mockResolvedValue(null);
-    const updated = await PUT(jsonRequest("PUT", { sku: "P001", name: "X" }) as never, ctx as never);
-    const deleted = await DELETE({} as never, ctx as never);
+    const updated = await PUT(jsonRequest("PUT", { sku: "P001", name: "X" }), ctx);
+    const deleted = await DELETE(emptyRequest, ctx);
     expect(updated.status).toBe(404);
     expect(deleted.status).toBe(404);
     expect(updateProduct).not.toHaveBeenCalled();
@@ -166,7 +157,7 @@ describe("products API error handling", () => {
 
   it("returns 400 when the update is invalid", async () => {
     (getProduct as jest.Mock).mockResolvedValue(product);
-    const response = await PUT(jsonRequest("PUT", { sku: "P001" }) as never, ctx as never);
+    const response = await PUT(jsonRequest("PUT", { sku: "P001" }), ctx);
     expect(response.status).toBe(400);
     expect(updateProduct).not.toHaveBeenCalled();
   });
@@ -178,11 +169,11 @@ describe("products API error handling", () => {
       new Error("Cant delete a product associated with an inspection."),
     );
 
-    const updated = await PUT(jsonRequest("PUT", { sku: "P001", name: "X" }) as never, ctx as never);
+    const updated = await PUT(jsonRequest("PUT", { sku: "P001", name: "X" }), ctx);
     expect(updated.status).toBe(500);
     await expect(updated.json()).resolves.toEqual({ error: "Could not update the product" });
 
-    const deleted = await DELETE({} as never, ctx as never);
+    const deleted = await DELETE(emptyRequest, ctx);
     expect(deleted.status).toBe(500);
     await expect(deleted.json()).resolves.toEqual({ error: "Could not delete the product" });
   });

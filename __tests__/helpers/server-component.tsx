@@ -35,3 +35,8 @@ export async function renderServerComponent(node: ReactNode) {
   const resolved = await resolveServerTree(node);
   return render(<AlertProvider>{resolved}</AlertProvider>);
 }
+
+export function pageParams(id: string) {
+  return { params: Promise.resolve({ id }), searchParams: Promise.resolve({}) };
+}
+

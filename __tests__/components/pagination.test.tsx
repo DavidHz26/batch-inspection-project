@@ -1,22 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import { Pagination, PageSizeForm } from "@/app/pagination";
 
-jest.mock("next/link", () => ({
-  __esModule: true,
-  default: ({
-    href,
-    children,
-    ...props
-  }: {
-    href: string;
-    children: React.ReactNode;
-  }) => (
-    <a href={href} {...props}>
-      {children}
-    </a>
-  ),
-}));
-
 describe("Pagination", () => {
   it("disables Previous on the first page and links Next", () => {
     render(
