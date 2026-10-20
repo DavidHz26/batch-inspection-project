@@ -47,7 +47,9 @@ export async function InspectionTable({ search_params }: {
         <label className="grid gap-1 w-full sm:w-auto">
           Product
 
-          <select name="product_id" defaultValue={product_id ?? ""} className="w-full sm:max-w-xs">
+          {/* El key vuelve a montar el select cuando cambia la URL: con cacheComponents,
+              Next conserva el DOM de la página al navegar y defaultValue no se volvería a aplicar. */}
+          <select key={product_id ?? ""} name="product_id" defaultValue={product_id ?? ""} className="w-full sm:max-w-xs">
             <option value="">All</option>
             {products.map((product) => (
               <option key={product.id} value={product.id}>
@@ -59,7 +61,7 @@ export async function InspectionTable({ search_params }: {
 
         <label className="grid gap-1">
           Status
-          <select name="status" defaultValue={status ?? ""}>
+          <select key={status ?? ""} name="status" defaultValue={status ?? ""}>
             <option value="">All</option>
             {INSPECTION_STATUSES.map((s) => (
               <option key={s} value={s}>
