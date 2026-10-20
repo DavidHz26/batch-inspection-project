@@ -84,7 +84,7 @@ Ejemplo sin secretos en [`.env.example`](.env.example):
 |---|---|---|
 | `NEXT_PUBLIC_SUPABASE_URL` | URL del proyecto de Supabase | Supabase → Project Settings → API |
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Llave pública (*publishable*) del proyecto | Supabase → Project Settings → API Keys |
-| `DEMO_DATA_ENABLED` | `true` habilita las acciones para cargar o reiniciar datos de ejemplo. Dejar en `false` en producción. | — |
+| `DEMO_DATA_ENABLED` | `true` habilita las acciones para cargar datos de ejemplo (*Load*) o borrar los datos de una organización (*Reset*). Dejar en `false` en producción. | — |
 
 > Reemplaza los valores de ejemplo antes de ejecutar: con la URL de `.env.example` la aplicación no inicia (`Invalid supabaseUrl: Provided URL is malformed`).
 >
@@ -103,10 +103,20 @@ Ejemplo sin secretos en [`.env.example`](.env.example):
 
 ## Base de datos: migraciones y catálogo inicial
 
+![Diagrama de la base de datos](docs/db-schema.png)
+
+`products` e `inspections` pertenecen a una organización (`organization_id`), y cada inspección pertenece a un producto (`product_id`). Reglas que no se ven en el diagrama:
+
+- **Restricciones `CHECK` en `inspections`:** `units_inspected > 0`, `0 ≤ units_defective ≤ units_inspected`, lote no vacío y `status` limitado a `Approved`, `Observations` o `Rejected`. Repiten en la base de datos las reglas de captura que valida el servidor.
+- **No se puede borrar un producto con inspecciones** (`on delete restrict`). Al borrar una organización, sus productos e inspecciones se borran con ella (`on delete cascade`).
+- **El SKU es único por organización** (`unique (organization_id, sku)`) y el `slug` de la organización es único global.
+- `defect_percentage` y `status` siempre los calcula el servidor (`lib/quality-calculator.ts`); nunca se capturan.
+
 | Archivo | Contenido |
 |---|---|
 | [`supabase/migrations/20261019000000_init_schema.sql`](supabase/migrations/20261019000000_init_schema.sql) | Tablas `organizations`, `products` e `inspections`, con restricciones (`CHECK`) que repiten las reglas de captura a nivel base de datos |
-| [`supabase/migrations/20261019010000_demo_data_functions.sql`](supabase/migrations/20261019010000_demo_data_functions.sql) | Función `load_demo_catalog()`, que agrega el catálogo inicial a una organización, y función para reiniciar los datos de una organización |
+| [`supabase/migrations/20261019010000_demo_data_functions.sql`](supabase/migrations/20261019010000_demo_data_functions.sql) | Función `load_demo_catalog()`, que agrega el catálogo inicial a una organización, y función `reset_organization_data()` |
+| [`supabase/migrations/20261020000000_reset_clears_organization_data.sql`](supabase/migrations/20261020000000_reset_clears_organization_data.sql) | Redefine `reset_organization_data()` para que borre los productos e inspecciones de la organización sin volver a cargar los datos de ejemplo |
 | [`supabase/seed.sql`](supabase/seed.sql) | Crea la organización **"Planta Demo"** con los 5 productos: **P001 Martillo, P002 Pinzas, P003 Desarmador, P004 Flexómetro, P005 Llave ajustable** |
 
 El seed es idempotente: se puede ejecutar varias veces sin duplicar datos.
@@ -132,7 +142,7 @@ Usa la URL y la llave que imprime `supabase start` en tu `.env`.
 
 ### Opción C: manual
 
-En el **SQL Editor** de Supabase, ejecuta en orden los dos archivos de `supabase/migrations/` y después `supabase/seed.sql`.
+En el **SQL Editor** de Supabase, ejecuta en orden (por nombre) los archivos de `supabase/migrations/` y después `supabase/seed.sql`.
 
 ## Lógica de clasificación
 
@@ -281,6 +291,13 @@ Mi forma de trabajo fue construir primero cada patrón en una pantalla y despué
   - Corrección de los errores de ESLint (`require()` en mocks y `any` explícitos, reemplazados por el tipo `InspectionUnits`).
   - Corrección de un error de TypeScript en las pruebas.
 - **Revisión contra el requerimiento y documentación (Claude Code):** comparación del proyecto con el documento de la prueba y un borrador completo de este README, que después corregí y completé (pasos del deploy, uso de IA, decisiones y pendientes).
+- **Ajustes finales (Claude Code):** detecté que los filtros no se reiniciaban al volver a la tabla y definí el nuevo comportamiento de *Load*/*Reset* y qué casos debía incluir la demo (los obligatorios del documento, el caso global filtrable por P005 y un caso de redondeo engañoso). La IA diagnosticó la causa del filtro (Next.js conserva el DOM de la página con `<Activity>`) e implementó los cambios, la nueva migración y la prueba de regresión. Commits de esta etapa hechos con Claude Code:
+  - `Fix: Sync filter selects with URL when the page is restored`
+  - `Feature: Reset clears organization data instead of reloading the demo`
+  - `Feature: Demo data with the required test cases`
+  - `Docs: Database diagram, demo data and AI declaration updates`
+
+  El commit `Style: Translate recent inspections footer to English` es un cambio mío; la IA solo lo agrupó en su propio commit.
 
 **Qué adapté**
 
@@ -321,12 +338,12 @@ Mi forma de trabajo fue construir primero cada patrón en una pantalla y despué
 **Proceso técnico**
 
 - **Jest para pruebas unitarias y Cypress para E2E:** las herramientas de component testing de Cypress no soportan Server Components asíncronos, así que la lógica y las páginas se prueban con Jest, y Cypress queda reservado para pruebas end-to-end.
-- **Prioridad de las pruebas:** primero el aislamiento por organización en la capa de datos, el manejo de errores de la API y las Server Actions, por ser lo más riesgoso. Los datos de demostración se excluyeron porque se van a retirar.
+- **Prioridad de las pruebas:** primero el aislamiento por organización en la capa de datos, el manejo de errores de la API y las Server Actions, por ser lo más riesgoso. Las acciones de datos de demostración no tienen pruebas automatizadas; se verifican manualmente con *Load* y *Reset*.
 - **Deploy en Vercel:** la aplicación necesita un servidor de Node.js, por lo que un hosting estático como GitHub Pages no es viable.
 
 ### Pendientes
 
-- **Retirar los datos de demostración** (`lib/demo-data.ts`, sus acciones, la función `reset_organization_data` y la variable `DEMO_DATA_ENABLED`), que solo se usaron durante el desarrollo. La función `load_demo_catalog` debe conservarse, porque `seed.sql` la usa para cargar el catálogo inicial. Es peligroso mantenerlas activas porque pueden afectar los registros por completo.
+- **Proteger los datos de demostración antes de un uso real.** En el demo, *Load* y *Reset* permiten comprobar los casos del documento directamente en la app. Fuera de un ambiente de demostración habría que desactivarlos (`DEMO_DATA_ENABLED=false`) y además quitar el permiso `anon` de la función `reset_organization_data`: la variable solo oculta los botones, pero la función sigue disponible en la base de datos para quien tenga la llave pública. La función `load_demo_catalog` debe conservarse, porque `seed.sql` la usa para cargar el catálogo inicial.
 - **Habilitar Row Level Security (RLS)** en las tablas de Supabase. Actualmente el acceso pasa siempre por el servidor de Next.js, sin RLS cualquiera que tenga la llave pública podría consultar la API de Supabase directamente. No se incluyó autenticación por el momento, pero Supabase la ofrece, por lo que se agregará en un futuro.
 - Considerar la opción de agregar idiomas, mínimo Inglés y Español.
 - Agregar pruebas end-to-end (con Cypress, para velocidad) para el flujo completo contra una base de datos real.
