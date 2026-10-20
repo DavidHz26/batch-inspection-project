@@ -14,7 +14,7 @@ export function PageSizeSelect({ page_size }: { page_size: number }) {
   return (
     <label className="grid gap-1">
       Items
-      <select name="page_size" defaultValue={page_size.toString()}>
+      <select key={page_size} name="page_size" defaultValue={page_size.toString()}>
         {PAGE_SIZES.map((size) => (
           <option key={size} value={size}>
             {size}

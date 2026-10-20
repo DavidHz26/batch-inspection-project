@@ -80,16 +80,16 @@ async function EditOrganization({ params }: Pick<PageProps<"/organizations/[id]/
         {demo_enabled && (
           <div className="space-y-4">
             <div>
-              <h3 className="font-medium text-sm">Reset to demo data</h3>
+              <h3 className="font-medium text-sm">Reset data</h3>
               <p className="text-sm text-muted-foreground">
-                Deletes all products and inspections of this organization and restores the
-                initial catalog with sample inspections. Other organizations are not affected.
+                Deletes all products and inspections of this organization and leaves it empty.
+                Other organizations are not affected.
               </p>
             </div>
             <ActionForm action={resetDemoData.bind(null, organization.id)} className="flex justify-end w-full">
               <ConfirmSubmitButton
-                message={`Reset "${organization.name}" to demo data?`}
-                submessage="All its products and inspections will be deleted and replaced with the initial demo data."
+                message={`Delete all data of "${organization.name}"?`}
+                submessage="All its products and inspections will be permanently deleted. The organization will be left empty."
                 class_name="px-5 py-2 rounded-full text-sm font-semibold bg-danger text-white hover:bg-danger/85 transition-colors shadow-sm"
                 confirm_class_name="bg-danger text-white hover:bg-danger/85"
               >

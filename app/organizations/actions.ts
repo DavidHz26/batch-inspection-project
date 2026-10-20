@@ -115,7 +115,7 @@ export async function resetDemoData(id: string): Promise<ActionState> {
       revalidatePath("/", "layout");
     },
     {
-      success: "Organization reset to demo data successfully.",
+      success: "Organization data deleted successfully.",
       failure: "Could not reset the organization data",
       redirect_to: "/inspections",
     },
