@@ -32,6 +32,15 @@ export interface Inspection {
   products?: Pick<Product, 'sku' | 'name'> | null;
 }
 
+type ProductLabel = Pick<Product, 'sku' | 'name'>;
+
+// Supabase puede devolver la relación products como objeto o como arreglo.
+export interface InspectionUnits {
+  units_inspected: number;
+  units_defective: number;
+  products: ProductLabel | ProductLabel[] | null;
+}
+
 export type OrganizationInput = Pick<Organization, 'name' | 'slug'>;
 
 export type ProductInput = Pick<Product, 'sku' | 'name' | 'is_active'>;

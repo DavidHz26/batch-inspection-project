@@ -2,7 +2,12 @@ import { getCurrentOrganizationId, requireOrganizationId } from "./organization"
 import { classifyInspection } from "./quality-calculator";
 import { supabase } from "./supabase";
 import { pageRange, type Paginated } from "./pagination";
-import type { Inspection, InspectionInput, InspectionFilters } from "./types";
+import type {
+  Inspection,
+  InspectionInput,
+  InspectionFilters,
+  InspectionUnits,
+} from "./types";
 
 const INSPECTION_SELECT = "*, products(sku, name)";
 
@@ -42,11 +47,7 @@ export async function getInspections(
 
 export async function getInspectionUnits(
   filters: InspectionFilters = {},
-): Promise<{
-  units_inspected: number;
-  units_defective: number;
-  products: { sku: string; name: string } | { sku: string; name: string }[] | null;
-}[]> {
+): Promise<InspectionUnits[]> {
   const organization_id = await getCurrentOrganizationId();
   if (!organization_id) return [];
 
@@ -62,7 +63,7 @@ export async function getInspectionUnits(
   const { data, error } = await query;
 
   if (error) throw new Error(`Error while trying to get the inspections: ${error.message}`);
-  return (data || []) as any;
+  return (data || []) as InspectionUnits[];
 }
 
 export async function getInspection(id: string): Promise<Inspection | null> {
