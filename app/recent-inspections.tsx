@@ -1,6 +1,8 @@
 "use client";
 
-export function RecentInspectionsList({ inspections }: { inspections: any[] }) {
+import type { InspectionUnits } from "@/lib/types";
+
+export function RecentInspectionsList({ inspections }: { inspections: InspectionUnits[] }) {
   const recent = inspections.slice(-5).reverse();
 
   return (
