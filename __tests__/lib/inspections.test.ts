@@ -12,6 +12,7 @@ jest.mock("@/lib/organization", () => ({
   requireOrganizationId: jest.fn(async () => "org-1"),
 }));
 
+import { type MockSupabase } from "../helpers/supabase-mock";
 import { supabase } from "@/lib/supabase";
 import { getCurrentOrganizationId, requireOrganizationId } from "@/lib/organization";
 import {
@@ -23,9 +24,7 @@ import {
   updateInspection,
 } from "@/lib/inspections";
 
-const mock = supabase as unknown as ReturnType<
-  typeof import("../helpers/supabase-mock").createSupabaseMock
->;
+const mock = supabase as unknown as MockSupabase;
 
 describe("inspections data layer", () => {
   beforeEach(() => {

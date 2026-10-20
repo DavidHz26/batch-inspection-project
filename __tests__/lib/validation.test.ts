@@ -4,7 +4,6 @@ import {
   parseOrganization,
   parseProduct,
   slugify,
-  ValidationError,
 } from "@/lib/validation";
 
 describe("slugify", () => {
@@ -35,8 +34,8 @@ describe("parseOrganization", () => {
     );
   });
 
-  it("rejects a missing name", () => {
-    expect(() => parseOrganization({})).toThrow(ValidationError);
+  it("rejects non-text name in organization", () => {
+    expect(() => parseOrganization({ name: 123 as unknown as string })).toThrow("name must be text");
   });
 });
 
@@ -47,6 +46,10 @@ describe("parseProduct", () => {
       name: "Widget",
       is_active: true,
     });
+  });
+
+  it("treats explicit non-true is_active as false", () => {
+    expect(parseProduct({ sku: "P001", name: "Widget", is_active: "off" }).is_active).toBe(false);
   });
 
   it("uses the default when is_active is omitted", () => {
@@ -81,6 +84,12 @@ describe("parseInspection", () => {
       inspector_name: "David",
       notes: "ok",
     });
+  });
+
+  it("rejects non-matching date formats", () => {
+    expect(() =>
+      parseInspection({ ...valid, inspection_date: "invalid-date" }),
+    ).toThrow("inspection_date must be a valid date (YYYY-MM-DD)");
   });
 
   it("rejects invalid calendar dates", () => {

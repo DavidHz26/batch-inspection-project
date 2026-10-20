@@ -1,7 +1,7 @@
 import { screen } from "@testing-library/react";
 import NewInspectionPage from "@/app/inspections/new/page";
 import EditInspectionPage from "@/app/inspections/[id]/edit/page";
-import { renderServerComponent } from "../helpers/server-component";
+import { pageParams, renderServerComponent } from "../helpers/server-component";
 import { inspection, product } from "../helpers/fixtures";
 
 jest.mock("next/navigation", () => ({
@@ -9,13 +9,6 @@ jest.mock("next/navigation", () => ({
   notFound: jest.fn(() => {
     throw new Error("NEXT_NOT_FOUND");
   }),
-}));
-
-jest.mock("next/link", () => ({
-  __esModule: true,
-  default: ({ href, children }: { href: string; children: React.ReactNode }) => (
-    <a href={href}>{children}</a>
-  ),
 }));
 
 jest.mock("@/app/inspections/actions", () => ({
@@ -42,10 +35,6 @@ import { getInspection } from "@/lib/inspections";
 
 const inactive_product = { ...product, id: "prod-2", sku: "P002", name: "Old", is_active: false };
 const other_inactive_product = { ...product, id: "prod-3", sku: "P003", name: "Gone", is_active: false };
-
-function editParams(id: string) {
-  return { params: Promise.resolve({ id }), searchParams: Promise.resolve({}) };
-}
 
 function productOptions() {
   return screen
@@ -104,7 +93,7 @@ describe("inspection pages (server components)", () => {
         other_inactive_product,
       ]);
 
-      await renderServerComponent(EditInspectionPage(editParams("insp-1")));
+      await renderServerComponent(EditInspectionPage(pageParams("insp-1")));
 
       expect(getInspection).toHaveBeenCalledWith("insp-1");
       expect(productOptions()).toEqual(["P001 - Widget", "P002 - Old"]);
@@ -115,7 +104,7 @@ describe("inspection pages (server components)", () => {
       (getInspection as jest.Mock).mockResolvedValue(inspection);
       (getProducts as jest.Mock).mockResolvedValue([product]);
 
-      await renderServerComponent(EditInspectionPage(editParams("insp-1")));
+      await renderServerComponent(EditInspectionPage(pageParams("insp-1")));
 
       expect(screen.getByRole("heading", { name: /Batch B-001/ })).toBeInTheDocument();
       expect(screen.getByText(/2% defects/)).toBeInTheDocument();
@@ -133,7 +122,7 @@ describe("inspection pages (server components)", () => {
       });
       (getProducts as jest.Mock).mockResolvedValue([product]);
 
-      await renderServerComponent(EditInspectionPage(editParams("insp-1")));
+      await renderServerComponent(EditInspectionPage(pageParams("insp-1")));
 
       expect(screen.getByText("5.001% defects")).toBeInTheDocument();
       expect(
@@ -145,7 +134,7 @@ describe("inspection pages (server components)", () => {
       (getCurrentOrganizationId as jest.Mock).mockResolvedValue(null);
 
       await expect(
-        renderServerComponent(EditInspectionPage(editParams("insp-1"))),
+        renderServerComponent(EditInspectionPage(pageParams("insp-1"))),
       ).rejects.toThrow("NEXT_NOT_FOUND");
       expect(getInspection).not.toHaveBeenCalled();
     });
@@ -156,7 +145,7 @@ describe("inspection pages (server components)", () => {
       (getProducts as jest.Mock).mockResolvedValue([product]);
 
       await expect(
-        renderServerComponent(EditInspectionPage(editParams("missing"))),
+        renderServerComponent(EditInspectionPage(pageParams("missing"))),
       ).rejects.toThrow("NEXT_NOT_FOUND");
     });
   });

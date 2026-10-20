@@ -1,7 +1,7 @@
 import { screen } from "@testing-library/react";
 import NewProductPage from "@/app/products/new/page";
 import EditProductPage from "@/app/products/[id]/edit/page";
-import { renderServerComponent } from "../helpers/server-component";
+import { pageParams, renderServerComponent } from "../helpers/server-component";
 import { product } from "../helpers/fixtures";
 
 jest.mock("next/navigation", () => ({
@@ -9,13 +9,6 @@ jest.mock("next/navigation", () => ({
   notFound: jest.fn(() => {
     throw new Error("NEXT_NOT_FOUND");
   }),
-}));
-
-jest.mock("next/link", () => ({
-  __esModule: true,
-  default: ({ href, children }: { href: string; children: React.ReactNode }) => (
-    <a href={href}>{children}</a>
-  ),
 }));
 
 jest.mock("@/app/products/actions", () => ({
@@ -34,10 +27,6 @@ jest.mock("@/lib/products", () => ({
 
 import { getCurrentOrganizationId } from "@/lib/organization";
 import { getProduct } from "@/lib/products";
-
-function editParams(id: string) {
-  return { params: Promise.resolve({ id }), searchParams: Promise.resolve({}) };
-}
 
 describe("product pages (server components)", () => {
   beforeEach(() => {
@@ -71,7 +60,7 @@ describe("product pages (server components)", () => {
       (getCurrentOrganizationId as jest.Mock).mockResolvedValue("org-1");
       (getProduct as jest.Mock).mockResolvedValue(product);
 
-      await renderServerComponent(EditProductPage(editParams("prod-1")));
+      await renderServerComponent(EditProductPage(pageParams("prod-1")));
 
       expect(getProduct).toHaveBeenCalledWith("org-1", "prod-1");
       expect(screen.getByRole("heading", { name: "Edit Widget" })).toBeInTheDocument();
@@ -84,7 +73,7 @@ describe("product pages (server components)", () => {
       (getCurrentOrganizationId as jest.Mock).mockResolvedValue("org-1");
       (getProduct as jest.Mock).mockResolvedValue({ ...product, is_active: false });
 
-      await renderServerComponent(EditProductPage(editParams("prod-1")));
+      await renderServerComponent(EditProductPage(pageParams("prod-1")));
 
       expect(screen.getByText(/SKU P001 · inactive/)).toBeInTheDocument();
     });
@@ -93,7 +82,7 @@ describe("product pages (server components)", () => {
       (getCurrentOrganizationId as jest.Mock).mockResolvedValue(null);
 
       await expect(
-        renderServerComponent(EditProductPage(editParams("prod-1"))),
+        renderServerComponent(EditProductPage(pageParams("prod-1"))),
       ).rejects.toThrow("NEXT_NOT_FOUND");
       expect(getProduct).not.toHaveBeenCalled();
     });
@@ -103,7 +92,7 @@ describe("product pages (server components)", () => {
       (getProduct as jest.Mock).mockResolvedValue(null);
 
       await expect(
-        renderServerComponent(EditProductPage(editParams("other"))),
+        renderServerComponent(EditProductPage(pageParams("other"))),
       ).rejects.toThrow("NEXT_NOT_FOUND");
     });
   });

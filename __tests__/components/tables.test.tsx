@@ -8,13 +8,6 @@ jest.mock("next/navigation", () => ({
   useRouter: () => ({ push: jest.fn(), prefetch: jest.fn() }),
 }));
 
-jest.mock("next/link", () => ({
-  __esModule: true,
-  default: ({ href, children }: { href: string; children: React.ReactNode }) => (
-    <a href={href}>{children}</a>
-  ),
-}));
-
 jest.mock("@/lib/organization", () => ({
   getCurrentOrganizationId: jest.fn(),
   getOrganizationsPage: jest.fn(),

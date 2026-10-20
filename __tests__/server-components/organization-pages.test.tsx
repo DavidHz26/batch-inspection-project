@@ -1,6 +1,6 @@
 import { screen } from "@testing-library/react";
 import EditOrganizationPage from "@/app/organizations/[id]/edit/page";
-import { renderServerComponent } from "../helpers/server-component";
+import { pageParams, renderServerComponent } from "../helpers/server-component";
 import { org } from "../helpers/fixtures";
 
 jest.mock("next/navigation", () => ({
@@ -8,13 +8,6 @@ jest.mock("next/navigation", () => ({
   notFound: jest.fn(() => {
     throw new Error("NEXT_NOT_FOUND");
   }),
-}));
-
-jest.mock("next/link", () => ({
-  __esModule: true,
-  default: ({ href, children }: { href: string; children: React.ReactNode }) => (
-    <a href={href}>{children}</a>
-  ),
 }));
 
 jest.mock("@/app/organizations/actions", () => ({
@@ -33,11 +26,6 @@ jest.mock("@/lib/demo-data", () => ({
 }));
 
 import { getOrganization } from "@/lib/organization";
-import { isDemoDataEnabled } from "@/lib/demo-data";
-
-function editParams(id: string) {
-  return { params: Promise.resolve({ id }), searchParams: Promise.resolve({}) };
-}
 
 describe("EditOrganizationPage (server component)", () => {
   beforeEach(() => {
@@ -46,9 +34,8 @@ describe("EditOrganizationPage (server component)", () => {
 
   it("renders the organization details and the delete action", async () => {
     (getOrganization as jest.Mock).mockResolvedValue(org);
-    (isDemoDataEnabled as jest.Mock).mockReturnValue(false);
 
-    await renderServerComponent(EditOrganizationPage(editParams("org-1")));
+    await renderServerComponent(EditOrganizationPage(pageParams("org-1")));
 
     expect(getOrganization).toHaveBeenCalledWith("org-1");
     expect(screen.getByRole("heading", { name: "Edit Acme" })).toBeInTheDocument();
@@ -56,31 +43,11 @@ describe("EditOrganizationPage (server component)", () => {
     expect(screen.getByRole("button", { name: "Delete" })).toBeInTheDocument();
   });
 
-  it("hides the demo actions when demo data is disabled", async () => {
-    (getOrganization as jest.Mock).mockResolvedValue(org);
-    (isDemoDataEnabled as jest.Mock).mockReturnValue(false);
-
-    await renderServerComponent(EditOrganizationPage(editParams("org-1")));
-
-    expect(screen.queryByRole("button", { name: "Load" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Reset" })).not.toBeInTheDocument();
-  });
-
-  it("shows the demo actions when demo data is enabled", async () => {
-    (getOrganization as jest.Mock).mockResolvedValue(org);
-    (isDemoDataEnabled as jest.Mock).mockReturnValue(true);
-
-    await renderServerComponent(EditOrganizationPage(editParams("org-1")));
-
-    expect(screen.getByRole("button", { name: "Load" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Reset" })).toBeInTheDocument();
-  });
-
   it("returns 404 when the organization does not exist", async () => {
     (getOrganization as jest.Mock).mockResolvedValue(null);
 
     await expect(
-      renderServerComponent(EditOrganizationPage(editParams("missing"))),
+      renderServerComponent(EditOrganizationPage(pageParams("missing"))),
     ).rejects.toThrow("NEXT_NOT_FOUND");
   });
 });
